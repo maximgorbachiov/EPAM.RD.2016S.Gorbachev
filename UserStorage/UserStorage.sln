@@ -1,0 +1,40 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.24720.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UserStorageConsole", "UserStorageConsole\UserStorageConsole.csproj", "{926A6377-3D49-4E8D-AF77-E7AA3602DE4F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FibonachyGenerator", "FibonachyGenerator\FibonachyGenerator.csproj", "{E6565561-3A37-4F07-BAD1-1759732F6852}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StorageLib", "StorageLib\StorageLib.csproj", "{01842DAD-604F-4E1F-9DBD-3C1B6FDDCD33}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StorageConfigurator", "StorageConfigurator\StorageConfigurator.csproj", "{AA2E60FB-AEA5-4E34-AEBF-9F0663387BB2}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{926A6377-3D49-4E8D-AF77-E7AA3602DE4F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{926A6377-3D49-4E8D-AF77-E7AA3602DE4F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{926A6377-3D49-4E8D-AF77-E7AA3602DE4F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{926A6377-3D49-4E8D-AF77-E7AA3602DE4F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E6565561-3A37-4F07-BAD1-1759732F6852}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E6565561-3A37-4F07-BAD1-1759732F6852}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E6565561-3A37-4F07-BAD1-1759732F6852}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E6565561-3A37-4F07-BAD1-1759732F6852}.Release|Any CPU.Build.0 = Release|Any CPU
+		{01842DAD-604F-4E1F-9DBD-3C1B6FDDCD33}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{01842DAD-604F-4E1F-9DBD-3C1B6FDDCD33}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{01842DAD-604F-4E1F-9DBD-3C1B6FDDCD33}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{01842DAD-604F-4E1F-9DBD-3C1B6FDDCD33}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AA2E60FB-AEA5-4E34-AEBF-9F0663387BB2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA2E60FB-AEA5-4E34-AEBF-9F0663387BB2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AA2E60FB-AEA5-4E34-AEBF-9F0663387BB2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AA2E60FB-AEA5-4E34-AEBF-9F0663387BB2}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
