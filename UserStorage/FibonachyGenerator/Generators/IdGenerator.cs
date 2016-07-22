@@ -1,47 +1,71 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using FibonachyGenerator.Interfaces;
 
 namespace FibonachyGenerator.Generators
 {
-    public class IdGenerator : IGeneratorId
+    public class IdGenerator : IGenerator
     {
-        private int prevLastValue = 0;
-        private int lastValue = 1;
-        private int currentValue;
+        private readonly IEnumerator<int> iterator;
 
         public int Current
         {
             get
             {
-                return currentValue;
+                iterator.MoveNext();
+                return iterator.Current;
             }
         }
 
-        object IEnumerator.Current
+        public IdGenerator()
         {
-            get
+            iterator = new FibonachyIterator();
+        }
+
+        public void SetGeneratorState(int value)
+        {
+            while (iterator.Current <= value)
+            {
+                iterator.MoveNext();
+            }
+        }
+
+        private class FibonachyIterator : IEnumerator<int>
+        {
+            private int prevLastValue;
+            private int lastValue = 1;
+            private int currentValue;
+
+            public int Current => currentValue;
+
+            object IEnumerator.Current
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            public bool MoveNext()
+            {
+                currentValue = prevLastValue + lastValue;
+                prevLastValue = lastValue;
+                lastValue = currentValue;
+                return true;
+            }
+
+            public void Reset()
+            {
+                prevLastValue = 0;
+                lastValue = 1;
+                currentValue = 0;
+            }
+
+            public void Dispose()
             {
                 throw new NotImplementedException();
             }
-        }
-
-        public bool MoveNext()
-        {
-            currentValue = prevLastValue + lastValue;
-            prevLastValue = lastValue;
-            lastValue = currentValue;
-            return true;
-        }
-
-        public void Reset()
-        {
-            
-        }
-
-        public void Dispose()
-        {
-            throw new NotImplementedException();
         }
     }
 }

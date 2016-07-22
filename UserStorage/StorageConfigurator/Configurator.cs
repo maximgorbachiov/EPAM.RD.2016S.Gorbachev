@@ -1,77 +1,60 @@
 ﻿using FibonachyGenerator.Generators;
 using FibonachyGenerator.Interfaces;
-using Storage;
 using StorageConfigurator.ConfigSection;
-using StorageLib.Entities;
 using StorageLib.Interfaces;
 using StorageLib.Repositories;
-using StorageLib.Strategies;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Storage.Storages;
+using StorageLib.Services;
 
 namespace StorageConfigurator
 {
     public class Configurator : IConfigurator
     {
-        private IGeneratorId generator;
-        private IRepository repository;
+        private const string FILENAME = "fileName";
+
         private IStorage logService;
-        private List<StorageLib.Storage> storages = new List<StorageLib.Storage>();
+        private readonly List<SlaveStorage> storages = new List<SlaveStorage>();
 
-        public const string FILENAME = "fileName";
+        public IStorage LogService => logService;
+        public List<SlaveStorage> SlaveStorages => storages; 
 
-        public IStorage Load()
+        public void Load()
         {
-            CustomSection servicesSection = (CustomSection)ConfigurationManager.GetSection("Services");
+            var servicesSection = (ServicesSection)ConfigurationManager.GetSection("Services");
+            var servicesInfoSection = (ServicesInfoSection)ConfigurationManager.GetSection("ServicesInfo");
 
             if (servicesSection == null)
             {
-                throw new NullReferenceException("Unable to read section from config.");
+                throw new NullReferenceException("Unable to read services section from config.");
             }
 
-            if (servicesSection.ServiceInfo.MasterCount != 1)
+            if (servicesInfoSection == null)
             {
-                throw new ConfigurationErrorsException("Count of masters must be one.");
+                throw new NullReferenceException("Unable to read service info section from config.");
             }
 
-            int[] idArray = new int[3];
-            string fileName = ConfigurationManager.AppSettings[FILENAME];
-
-            repository = new XMLRepository(fileName);
-            generator = new IdGenerator();
-
-            ServiceState state = repository.Load();
-
-            while (generator.Current < state.LastId)
-            {
-                generator.MoveNext();
-            }
-
+            IRepository repository = new XMLRepository(ConfigurationManager.AppSettings[FILENAME]);
+            IGenerator generator = new IdGenerator();
             IValidator validator = new UserValidator();
-            IStrategy masterStrategy = new MasterStrategy(state.Users, validator, generator);
-            IStorage masterStorage = new StorageLib.Storage(masterStrategy);
 
-            for (int i = 0; i < servicesSection.ServiceInfo.SlaveCount; i++)
+            IMasterStorage masterStorage = new MasterStorage(validator, generator, repository);
+            masterStorage.Load();
+
+            foreach (var slaveServiceElement in servicesSection.SlaveServices)
             {
-                IStrategy slaveStrategy = new SlaveStrategy(repository.Load().Users, (MasterStrategy)masterStrategy);
-                IStorage slaveStorage = new StorageLib.Storage(slaveStrategy);
-                storages.Add((StorageLib.Storage)slaveStorage);
+                IStorage slaveStorage = new SlaveStorage(masterStorage);
+                storages.Add((SlaveStorage)slaveStorage);
             }
 
-            logService = new LogService(masterStorage);
-
-            return logService;
+            logService = new LogService(masterStorage, "boolSwitch", "trace");
         }
 
         public void Save()
         {
-            ServiceState state = new ServiceState() { Users = logService.Users, LastId = generator.Current };
-
-            repository.Save(state);
+            ((IMasterStorage)logService).Save();
         }
     }
 }

@@ -41,8 +41,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ConfigSection\CustomSection.cs" />
-    <Compile Include="ConfigSection\Services.cs" />
+    <Compile Include="ConfigSection\MasterServiceElement.cs" />
+    <Compile Include="ConfigSection\ServicesInfoSection.cs" />
+    <Compile Include="ConfigSection\ServicesSection.cs" />
+    <Compile Include="ConfigSection\TypeInfo.cs" />
+    <Compile Include="ConfigSection\SlaveServiceElement.cs" />
+    <Compile Include="ConfigSection\SlaveServicesCollection.cs" />
     <Compile Include="Configurator.cs" />
     <Compile Include="IConfigurator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

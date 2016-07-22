@@ -4,48 +4,58 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace Storage
+namespace StorageLib.Services
 {
     public class LogService : IStorage
     {
-        private readonly IStorage userStorage;
+        private readonly IMasterStorage masterStorage;
         private readonly BooleanSwitch boolSwitch;
         private readonly TraceSource trace;
 
-        public List<User> Users { get { return userStorage.Users; } }
+        public List<User> Users => masterStorage.Users;
 
-        public LogService(IStorage userStorage)
+        public LogService(IMasterStorage masterStorage, string boolSwitchName, string traceSource)
         {
-            if (userStorage == null)
+            if (masterStorage == null)
             {
                 if (boolSwitch.Enabled)
                     trace.TraceEvent(TraceEventType.Error, 0, "User service is null!");
-                throw new ArgumentNullException(nameof(userStorage));
+                throw new ArgumentNullException(nameof(masterStorage));
             }
             boolSwitch = new BooleanSwitch("boolSwitch", "");
             trace = new TraceSource("trace");
-            this.userStorage = userStorage;
+            this.masterStorage = masterStorage;
         }
 
         public int AddUser(User user)
         {
             if (boolSwitch.Enabled)
                 trace.TraceEvent(TraceEventType.Information, 0, "Add work!");
-            return userStorage.AddUser(user);
+            return masterStorage.AddUser(user);
         }
 
         public List<int> SearchBy(IComparer<User> criteria, User user)
         {
             if (boolSwitch.Enabled)
                 trace.TraceEvent(TraceEventType.Information, 0, "Search work!");
-            return userStorage.SearchBy(criteria, user);
+            return masterStorage.SearchBy(criteria, user);
         }
 
         public void DeleteUser(int id)
         {
             if (boolSwitch.Enabled)
                 trace.TraceEvent(TraceEventType.Information, 0, "Delete work!");
-            userStorage.DeleteUser(id);
+            masterStorage.DeleteUser(id);
+        }
+
+        public void Load()
+        {
+            masterStorage.Load();
+        }
+
+        public void Save()
+        {
+            masterStorage.Save();
         }
     }
 }

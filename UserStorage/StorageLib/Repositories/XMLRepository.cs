@@ -7,7 +7,8 @@ namespace StorageLib.Repositories
 {
     public class XMLRepository : IRepository
     {
-        private string fileName;
+        private readonly string fileName;
+        private readonly XmlSerializer formatter = new XmlSerializer(typeof(ServiceState));
 
         public XMLRepository(string fileName)
         {
@@ -16,9 +17,7 @@ namespace StorageLib.Repositories
 
         public ServiceState Load()
         {
-            var formatter = new XmlSerializer(typeof(ServiceState));
-
-            using (FileStream xmlFile = new FileStream(fileName, FileMode.OpenOrCreate))
+            using (var xmlFile = new FileStream(fileName, FileMode.OpenOrCreate))
             {
                 if (xmlFile.Length > 0)
                 {
@@ -30,9 +29,7 @@ namespace StorageLib.Repositories
 
         public void Save(ServiceState state)
         {
-            var formatter = new XmlSerializer(typeof(ServiceState));
-
-            using (FileStream xmlFile = new FileStream(fileName, FileMode.OpenOrCreate))
+            using (var xmlFile = new FileStream(fileName, FileMode.OpenOrCreate))
             {
                 formatter.Serialize(xmlFile, state);
             }

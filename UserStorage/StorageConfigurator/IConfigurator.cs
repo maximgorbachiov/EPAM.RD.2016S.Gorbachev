@@ -1,10 +1,8 @@
-﻿using StorageLib.Interfaces;
-
-namespace StorageConfigurator
+﻿namespace StorageConfigurator
 {
     public interface IConfigurator
     {
-        IStorage Load();
+        void Load();
         void Save();
     }
 }
