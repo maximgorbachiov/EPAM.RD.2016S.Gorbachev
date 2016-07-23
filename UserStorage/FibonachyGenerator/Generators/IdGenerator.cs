@@ -5,6 +5,7 @@ using StorageInterfaces.IGenerators;
 
 namespace FibonachyGenerator.Generators
 {
+    [Serializable]
     public class IdGenerator : IGenerator
     {
         private readonly IEnumerator<int> iterator;
@@ -31,6 +32,7 @@ namespace FibonachyGenerator.Generators
             }
         }
 
+        [Serializable]
         private class FibonachyIterator : IEnumerator<int>
         {
             private int prevLastValue;

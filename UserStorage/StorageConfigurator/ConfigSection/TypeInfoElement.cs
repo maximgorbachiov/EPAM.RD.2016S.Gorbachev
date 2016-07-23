@@ -2,7 +2,7 @@
 
 namespace StorageConfigurator.ConfigSection
 {
-    public class TypeInfo : ConfigurationElement
+    public class TypeInfoElement : ConfigurationElement
     {
         [ConfigurationProperty("type", DefaultValue = "", IsKey = false, IsRequired = true)]
         public string Type

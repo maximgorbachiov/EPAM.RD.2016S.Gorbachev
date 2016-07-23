@@ -49,6 +49,7 @@
     <Compile Include="IGenerators\IGenerator.cs" />
     <Compile Include="IRepositories\IRepository.cs" />
     <Compile Include="IStorages\IMasterStorage.cs" />
+    <Compile Include="IStorages\ISlaveStorage.cs" />
     <Compile Include="IStorages\IStorage.cs" />
     <Compile Include="IValidators\IValidator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

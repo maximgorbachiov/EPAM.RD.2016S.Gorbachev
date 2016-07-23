@@ -5,12 +5,12 @@ namespace StorageConfigurator.ConfigSection
     public class ServicesInfoSection : ConfigurationSection
     {
         [ConfigurationProperty("Generator")]
-        public TypeInfo Generator => (TypeInfo)base["Generator"];
+        public TypeInfoElement Generator => (TypeInfoElement)base["Generator"];
 
         [ConfigurationProperty("Repository")]
-        public TypeInfo Repository => (TypeInfo)base["Repository"];
+        public TypeInfoElement Repository => (TypeInfoElement)base["Repository"];
 
         [ConfigurationProperty("Validator")]
-        public TypeInfo Validator => (TypeInfo)base["Validator"];
+        public TypeInfoElement Validator => (TypeInfoElement)base["Validator"];
     }
 }

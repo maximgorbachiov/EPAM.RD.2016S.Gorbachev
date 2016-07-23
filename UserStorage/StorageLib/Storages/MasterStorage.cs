@@ -8,9 +8,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Storage.Storages
+namespace StorageLib.Storages
 {
-    public class MasterStorage : IMasterStorage
+    public class MasterStorage : MarshalByRefObject, IMasterStorage
     {
         private readonly IValidator validator;
         private readonly IGenerator generator;

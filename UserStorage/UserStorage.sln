@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StorageConfigurator", "Stor
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StorageInterfaces", "StorageInterfaces\StorageInterfaces.csproj", "{A0DD8A3D-C80F-4064-8832-8120300E8DF7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ValidatorProject", "ValidatorProject\ValidatorProject.csproj", "{72EAED3D-8D4B-40F4-9F16-2B0E087F92AF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{A0DD8A3D-C80F-4064-8832-8120300E8DF7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A0DD8A3D-C80F-4064-8832-8120300E8DF7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A0DD8A3D-C80F-4064-8832-8120300E8DF7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{72EAED3D-8D4B-40F4-9F16-2B0E087F92AF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{72EAED3D-8D4B-40F4-9F16-2B0E087F92AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{72EAED3D-8D4B-40F4-9F16-2B0E087F92AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{72EAED3D-8D4B-40F4-9F16-2B0E087F92AF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

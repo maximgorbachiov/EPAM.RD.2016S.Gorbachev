@@ -4,18 +4,20 @@ using System.Linq;
 using StorageInterfaces.IStorages;
 using StorageInterfaces.Entities;
 using StorageInterfaces.EventArguments;
+using System.Net;
 
-namespace Storage.Storages
+namespace StorageLib.Storages
 {
-    public class SlaveStorage : IStorage
+    public class SlaveStorage : MarshalByRefObject, ISlaveStorage
     {
+        private int port;
+        private IPAddress ipaddress;
         public List<User> Users { get; }
 
-        public SlaveStorage(IMasterStorage masterStorage)
+        public SlaveStorage(int port, IPAddress ipaddress)
         {
-            Users = masterStorage.Users;
-            masterStorage.OnAddUser += AddEventHandler;
-            masterStorage.OnDeleteUser += DeleteEventHandler;
+            this.port = port;
+            this.ipaddress = ipaddress;   
         }
 
         public int AddUser(User user)
@@ -42,6 +44,11 @@ namespace Storage.Storages
 
             return Users.Where(user => comparator.Compare(user, searchingUser) == 0)
                 .Select(user => user.Id).ToList();
+        }
+
+        public byte[] SlaveWasCreate()
+        {
+            return new byte[10000];
         }
 
         protected virtual void AddEventHandler(object sender, AddEventArgs e)

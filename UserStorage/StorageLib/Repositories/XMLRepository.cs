@@ -1,14 +1,15 @@
 ﻿using StorageInterfaces.Entities;
 using StorageInterfaces.IRepositories;
+using System;
 using System.IO;
 using System.Xml.Serialization;
 
 namespace StorageLib.Repositories
 {
+    [Serializable]
     public class XMLRepository : IRepository
     {
         private readonly string fileName;
-        private readonly XmlSerializer formatter = new XmlSerializer(typeof(ServiceState));
 
         public XMLRepository(string fileName)
         {
@@ -17,6 +18,7 @@ namespace StorageLib.Repositories
 
         public ServiceState Load()
         {
+            XmlSerializer formatter = new XmlSerializer(typeof(ServiceState));
             using (var xmlFile = new FileStream(fileName, FileMode.OpenOrCreate))
             {
                 if (xmlFile.Length > 0)
@@ -29,6 +31,7 @@ namespace StorageLib.Repositories
 
         public void Save(ServiceState state)
         {
+            XmlSerializer formatter = new XmlSerializer(typeof(ServiceState));
             using (var xmlFile = new FileStream(fileName, FileMode.OpenOrCreate))
             {
                 formatter.Serialize(xmlFile, state);
