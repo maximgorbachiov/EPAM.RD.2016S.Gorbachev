@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
-using StorageLib.Entities;
+﻿using StorageInterfaces.Entities;
+using System.Collections.Generic;
 
-namespace StorageLib.Interfaces
+namespace StorageInterfaces.IStorages
 {
     public interface IStorage
     {

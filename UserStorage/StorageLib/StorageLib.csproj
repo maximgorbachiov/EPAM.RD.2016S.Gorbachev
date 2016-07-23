@@ -41,16 +41,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Entities\CountryVisa.cs" />
-    <Compile Include="Entities\Gender.cs" />
-    <Compile Include="Entities\ServiceState.cs" />
-    <Compile Include="Entities\User.cs" />
-    <Compile Include="EventArguments\AddEventArgs.cs" />
-    <Compile Include="EventArguments\DeleteEventArgs.cs" />
-    <Compile Include="Interfaces\IMasterStorage.cs" />
-    <Compile Include="Interfaces\IRepository.cs" />
-    <Compile Include="Interfaces\IStorage.cs" />
-    <Compile Include="Interfaces\IValidator.cs" />
     <Compile Include="Repositories\MemoryRepository.cs" />
     <Compile Include="Repositories\XMLRepository.cs" />
     <Compile Include="Services\LogService.cs" />
@@ -62,6 +52,10 @@
     <ProjectReference Include="..\FibonachyGenerator\FibonachyGenerator.csproj">
       <Project>{e6565561-3a37-4f07-bad1-1759732f6852}</Project>
       <Name>FibonachyGenerator</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\StorageInterfaces\StorageInterfaces.csproj">
+      <Project>{a0dd8a3d-c80f-4064-8832-8120300e8df7}</Project>
+      <Name>StorageInterfaces</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

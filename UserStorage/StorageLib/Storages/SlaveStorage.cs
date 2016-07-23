@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using StorageLib.Entities;
-using StorageLib.EventArguments;
-using StorageLib.Interfaces;
+using StorageInterfaces.IStorages;
+using StorageInterfaces.Entities;
+using StorageInterfaces.EventArguments;
 
 namespace Storage.Storages
 {

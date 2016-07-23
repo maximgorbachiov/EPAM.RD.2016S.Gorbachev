@@ -1,7 +1,7 @@
-﻿using System;
-using StorageLib.EventArguments;
+﻿using StorageInterfaces.EventArguments;
+using System;
 
-namespace StorageLib.Interfaces
+namespace StorageInterfaces.IStorages
 {
     public interface IMasterStorage : IStorage
     {

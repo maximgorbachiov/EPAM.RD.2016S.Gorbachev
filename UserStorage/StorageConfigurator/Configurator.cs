@@ -1,13 +1,15 @@
 ﻿using FibonachyGenerator.Generators;
-using FibonachyGenerator.Interfaces;
 using StorageConfigurator.ConfigSection;
-using StorageLib.Interfaces;
 using StorageLib.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
 using Storage.Storages;
 using StorageLib.Services;
+using StorageInterfaces.IStorages;
+using StorageInterfaces.IRepositories;
+using StorageInterfaces.IGenerators;
+using StorageInterfaces.IValidators;
 
 namespace StorageConfigurator
 {

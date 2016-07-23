@@ -1,4 +1,4 @@
-﻿namespace StorageLib.Entities
+﻿namespace StorageInterfaces.Entities
 {
     public enum Gender
     {

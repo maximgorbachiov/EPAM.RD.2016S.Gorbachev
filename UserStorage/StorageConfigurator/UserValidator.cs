@@ -1,5 +1,5 @@
-﻿using StorageLib.Entities;
-using StorageLib.Interfaces;
+﻿using StorageInterfaces.Entities;
+using StorageInterfaces.IValidators;
 
 namespace StorageConfigurator
 {

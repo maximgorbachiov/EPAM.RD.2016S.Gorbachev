@@ -1,5 +1,5 @@
-﻿using StorageLib.Interfaces;
-using StorageLib.Entities;
+﻿using StorageInterfaces.Entities;
+using StorageInterfaces.IRepositories;
 
 namespace StorageLib.Repositories
 {

@@ -53,17 +53,9 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\FibonachyGenerator\FibonachyGenerator.csproj">
-      <Project>{e6565561-3a37-4f07-bad1-1759732f6852}</Project>
-      <Name>FibonachyGenerator</Name>
-    </ProjectReference>
     <ProjectReference Include="..\StorageConfigurator\StorageConfigurator.csproj">
       <Project>{aa2e60fb-aea5-4e34-aebf-9f0663387bb2}</Project>
       <Name>StorageConfigurator</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\StorageLib\StorageLib.csproj">
-      <Project>{01842dad-604f-4e1f-9dbd-3c1b6fddcd33}</Project>
-      <Name>StorageLib</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

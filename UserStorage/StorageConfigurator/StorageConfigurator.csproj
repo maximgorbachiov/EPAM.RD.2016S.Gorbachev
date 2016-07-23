@@ -58,6 +58,10 @@
       <Project>{e6565561-3a37-4f07-bad1-1759732f6852}</Project>
       <Name>FibonachyGenerator</Name>
     </ProjectReference>
+    <ProjectReference Include="..\StorageInterfaces\StorageInterfaces.csproj">
+      <Project>{a0dd8a3d-c80f-4064-8832-8120300e8df7}</Project>
+      <Name>StorageInterfaces</Name>
+    </ProjectReference>
     <ProjectReference Include="..\StorageLib\StorageLib.csproj">
       <Project>{01842dad-604f-4e1f-9dbd-3c1b6fddcd33}</Project>
       <Name>StorageLib</Name>

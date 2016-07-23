@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using StorageLib.Entities;
+using StorageInterfaces.Entities;
 
 namespace StorageConfigurator
 {

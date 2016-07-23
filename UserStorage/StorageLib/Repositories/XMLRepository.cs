@@ -1,7 +1,7 @@
-﻿using System.IO;
+﻿using StorageInterfaces.Entities;
+using StorageInterfaces.IRepositories;
+using System.IO;
 using System.Xml.Serialization;
-using StorageLib.Entities;
-using StorageLib.Interfaces;
 
 namespace StorageLib.Repositories
 {

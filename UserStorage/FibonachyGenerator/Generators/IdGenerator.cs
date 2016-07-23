@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using FibonachyGenerator.Interfaces;
+using StorageInterfaces.IGenerators;
 
 namespace FibonachyGenerator.Generators
 {

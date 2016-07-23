@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace StorageLib.Entities
+namespace StorageInterfaces.Entities
 {
     public struct CountryVisa
     {

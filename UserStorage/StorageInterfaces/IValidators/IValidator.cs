@@ -1,6 +1,6 @@
-﻿using StorageLib.Entities;
+﻿using StorageInterfaces.Entities;
 
-namespace StorageLib.Interfaces
+namespace StorageInterfaces.IValidators
 {
     public interface IValidator
     {

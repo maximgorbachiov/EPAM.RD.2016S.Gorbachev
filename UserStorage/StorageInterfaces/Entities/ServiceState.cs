@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace StorageLib.Entities
+namespace StorageInterfaces.Entities
 {
     [Serializable]
     public class ServiceState

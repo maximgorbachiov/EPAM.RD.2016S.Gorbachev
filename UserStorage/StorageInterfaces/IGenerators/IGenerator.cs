@@ -1,4 +1,4 @@
-﻿namespace FibonachyGenerator.Interfaces
+﻿namespace StorageInterfaces.IGenerators
 {
     public interface IGenerator
     {

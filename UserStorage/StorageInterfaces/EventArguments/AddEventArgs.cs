@@ -1,7 +1,7 @@
-﻿using System;
-using StorageLib.Entities;
+﻿using StorageInterfaces.Entities;
+using System;
 
-namespace StorageLib.EventArguments
+namespace StorageInterfaces.EventArguments
 {
     public class AddEventArgs : EventArgs
     {

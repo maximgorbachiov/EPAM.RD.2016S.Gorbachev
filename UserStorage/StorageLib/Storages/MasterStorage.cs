@@ -1,7 +1,9 @@
-﻿using FibonachyGenerator.Interfaces;
-using StorageLib.Entities;
-using StorageLib.EventArguments;
-using StorageLib.Interfaces;
+﻿using StorageInterfaces.Entities;
+using StorageInterfaces.EventArguments;
+using StorageInterfaces.IGenerators;
+using StorageInterfaces.IRepositories;
+using StorageInterfaces.IStorages;
+using StorageInterfaces.IValidators;
 using System;
 using System.Collections.Generic;
 using System.Linq;
