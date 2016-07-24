@@ -5,19 +5,26 @@ using StorageInterfaces.IStorages;
 using StorageInterfaces.Entities;
 using StorageInterfaces.EventArguments;
 using System.Net;
+using StorageInterfaces.ISerializers;
+using StorageInterfaces.CommunicationEntities;
+using StorageLib.Serializers;
+using System.Net.Sockets;
+using Storage;
 
 namespace StorageLib.Storages
 {
     public class SlaveStorage : MarshalByRefObject, ISlaveStorage
     {
-        private int port;
-        private IPAddress ipaddress;
-        public List<User> Users { get; }
+        private IPEndPoint slaveEndPoint;
+        private IPEndPoint masterEndPoint;
+        private List<User> users = new List<User>();
 
-        public SlaveStorage(int port, IPAddress ipaddress)
+        public List<User> Users => users;
+
+        public SlaveStorage(IPEndPoint slaveEndPoint, IPEndPoint masterEndPoint)
         {
-            this.port = port;
-            this.ipaddress = ipaddress;   
+            this.slaveEndPoint = slaveEndPoint;
+            this.masterEndPoint = masterEndPoint;
         }
 
         public int AddUser(User user)
@@ -46,9 +53,36 @@ namespace StorageLib.Storages
                 .Select(user => user.Id).ToList();
         }
 
-        public byte[] SlaveWasCreate()
+        async public void NotifyMasterAboutSlaveCreate()
         {
-            return new byte[10000];
+            using (var slave = new TcpClient())
+            {
+                ISerializer<ServiceCommands> commandSerializer = new BsonSerializer<ServiceCommands>();
+                ISerializer<UsersCollection> collectionSerializer = new BsonSerializer<UsersCollection>();
+                await slave.ConnectAsync(masterEndPoint.Address, masterEndPoint.Port);
+                NetworkStream stream = slave.GetStream();
+
+                byte[] data = commandSerializer.Serialize(ServiceCommands.IS_CREATED);
+                await stream.WriteAsync(data, 0, data.Length);
+
+                using (var client = new Client(slave))
+                {
+                    data = await client.ProcessAsync();
+                }
+                users = collectionSerializer.Deserialize(data).Users;
+            }
+        }
+
+        async public void UpdateByMasterCommand()
+        {
+            var listener = new TcpListener(slaveEndPoint);
+            listener.Start();
+
+            while(true)
+            {
+                var client = await listener.AcceptTcpClientAsync();
+                var tcpStream = client.GetStream();
+            }
         }
 
         protected virtual void AddEventHandler(object sender, AddEventArgs e)

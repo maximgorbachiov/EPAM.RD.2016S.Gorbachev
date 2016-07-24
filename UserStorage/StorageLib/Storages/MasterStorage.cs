@@ -18,13 +18,7 @@ namespace StorageLib.Storages
 
         private List<User> users = new List<User>();
 
-        public List<User> Users
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
+        public List<User> Users => users;
 
         public event EventHandler<AddEventArgs> OnAddUser = delegate { };
         public event EventHandler<DeleteEventArgs> OnDeleteUser = delegate { };
@@ -101,12 +95,12 @@ namespace StorageLib.Storages
 
         protected virtual void OnAddUserEvent(AddEventArgs e)
         {
-            OnAddUser.Invoke(this, e);
+            OnAddUser(this, e);
         }
 
         protected virtual void OnDeleteUserEvent(DeleteEventArgs e)
         {
-            OnDeleteUser.Invoke(this, e);
+            OnDeleteUser(this, e);
         }
     }
 }

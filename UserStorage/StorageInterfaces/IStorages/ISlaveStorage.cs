@@ -2,6 +2,6 @@
 {
     public interface ISlaveStorage : IStorage
     {
-        byte[] SlaveWasCreate();
+        void NotifyMasterAboutSlaveCreate();
     }
 }
