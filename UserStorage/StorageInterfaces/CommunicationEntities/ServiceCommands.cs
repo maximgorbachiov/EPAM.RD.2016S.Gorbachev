@@ -1,10 +1,8 @@
 ﻿using System;
-using Newtonsoft.Json;
 
 namespace StorageInterfaces.CommunicationEntities
 {
     [Serializable]
-    [JsonObject]
     public enum ServiceCommands
     {
         IS_CREATED,

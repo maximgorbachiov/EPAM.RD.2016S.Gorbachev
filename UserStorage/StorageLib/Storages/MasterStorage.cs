@@ -1,5 +1,4 @@
 ﻿using StorageInterfaces.Entities;
-using StorageInterfaces.EventArguments;
 using StorageInterfaces.IGenerators;
 using StorageInterfaces.IRepositories;
 using StorageInterfaces.IStorages;
@@ -7,6 +6,10 @@ using StorageInterfaces.IValidators;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Net.Sockets;
+using Storage.NetworkClients;
+using StorageInterfaces.CommunicationEntities;
 
 namespace StorageLib.Storages
 {
@@ -17,11 +20,10 @@ namespace StorageLib.Storages
         private readonly IRepository repository;
 
         private List<User> users = new List<User>();
+        private readonly List<IPEndPoint> slavesEndPoints = new List<IPEndPoint>(); 
 
         public List<User> Users => users;
-
-        public event EventHandler<AddEventArgs> OnAddUser = delegate { };
-        public event EventHandler<DeleteEventArgs> OnDeleteUser = delegate { };
+        public IPEndPoint MasterEndPoint { get; set; }
 
         public MasterStorage(IValidator validator, IGenerator generator, IRepository repository)
         {
@@ -49,8 +51,7 @@ namespace StorageLib.Storages
 
             user.Id = generator.Current;
             users.Add(user);
-            OnAddUserEvent(new AddEventArgs { User = user });
-
+            NotifyServicesAboutDataUpdate(new NetworkData(user, ServiceCommands.ADD_USER));
             return user.Id;
         }
 
@@ -61,8 +62,9 @@ namespace StorageLib.Storages
                 throw new ArgumentException(nameof(id));
             }
 
-            users.Remove(users.Find(user => user.Id == id));
-            OnDeleteUserEvent(new DeleteEventArgs { Id = id });
+            var user = users.FirstOrDefault(u => u.Id == id);
+            users.Remove(user);
+            NotifyServicesAboutDataUpdate(new NetworkData(user, ServiceCommands.DELETE_USER));
         }
 
         public List<int> SearchBy(IComparer<User> comparator, User searchingUser)
@@ -93,14 +95,44 @@ namespace StorageLib.Storages
             repository.Save(new ServiceState { Users = users, LastId = generator.Current });
         }
 
-        protected virtual void OnAddUserEvent(AddEventArgs e)
+        public async void InitializeServices()
         {
-            OnAddUser(this, e);
+            var listener = new TcpListener(MasterEndPoint);
+            listener.Start();
+
+            while (true)
+            {
+                var client = await listener.AcceptTcpClientAsync();
+
+                using (var host = new NetworkClient(client))
+                {
+                    var command = (await host.ReadAsync<NetworkData>(1024)).Command;
+
+                    switch (command)
+                    {
+                        case ServiceCommands.IS_CREATED:
+                            host.WriteAsync(new UsersCollection(users));
+                            break;
+                    }
+
+                    slavesEndPoints.Add((IPEndPoint)client.Client.RemoteEndPoint);
+                }
+            }
         }
 
-        protected virtual void OnDeleteUserEvent(DeleteEventArgs e)
+        protected virtual async void NotifyServicesAboutDataUpdate(NetworkData data)
         {
-            OnDeleteUser(this, e);
+            foreach (var slave in slavesEndPoints)
+            {
+                using (var tcpClient = new TcpClient())
+                {
+                    await tcpClient.ConnectAsync(slave.Address, slave.Port);
+                    using (var host = new NetworkClient(tcpClient))
+                    {
+                        host.WriteAsync(data);
+                    }
+                }
+            }
         }
     }
 }

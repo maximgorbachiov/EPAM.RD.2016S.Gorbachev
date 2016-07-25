@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Configuration;
+using System.Linq;
 
 namespace StorageConfigurator
 {
@@ -16,16 +16,11 @@ namespace StorageConfigurator
 
         public static T CreateDependency<T>(string typeName, string dependencyName, params object[] constructorParams)
         {
-            var constructorParamsTypes = new List<Type>();
-
-            for (int i = 0; i < constructorParams.Length; i++)
-            {
-                constructorParamsTypes.Add(constructorParams[i].GetType());
-            }
-
             var type = Type.GetType(typeName);
-            if (type?.GetInterface(dependencyName) == null || type.GetConstructor(constructorParamsTypes.ToArray()) == null)
+
+            if (type?.GetInterface(dependencyName) == null || type.GetConstructor(constructorParams.Select(t => t.GetType()).ToArray()) == null)
                 throw new ConfigurationErrorsException("Unable to create repository.");
+
             return (T)Activator.CreateInstance(type, constructorParams);
         }
     }

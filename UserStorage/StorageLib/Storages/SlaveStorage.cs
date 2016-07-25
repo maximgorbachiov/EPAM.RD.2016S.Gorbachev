@@ -3,28 +3,27 @@ using System.Collections.Generic;
 using System.Linq;
 using StorageInterfaces.IStorages;
 using StorageInterfaces.Entities;
-using StorageInterfaces.EventArguments;
 using System.Net;
-using StorageInterfaces.ISerializers;
 using StorageInterfaces.CommunicationEntities;
-using StorageLib.Serializers;
 using System.Net.Sockets;
-using Storage;
+using Storage.NetworkClients;
+using StorageInterfaces.IRepositories;
 
 namespace StorageLib.Storages
 {
     public class SlaveStorage : MarshalByRefObject, ISlaveStorage
     {
-        private IPEndPoint slaveEndPoint;
-        private IPEndPoint masterEndPoint;
+        private readonly IPEndPoint slaveEndPoint;
+        private readonly IPEndPoint masterEndPoint;
         private List<User> users = new List<User>();
 
         public List<User> Users => users;
 
-        public SlaveStorage(IPEndPoint slaveEndPoint, IPEndPoint masterEndPoint)
+        public SlaveStorage(IRepository repository, IPEndPoint slaveEndPoint, IPEndPoint masterEndPoint)
         {
             this.slaveEndPoint = slaveEndPoint;
             this.masterEndPoint = masterEndPoint;
+            users = repository.Load().Users;
         }
 
         public int AddUser(User user)
@@ -53,27 +52,21 @@ namespace StorageLib.Storages
                 .Select(user => user.Id).ToList();
         }
 
-        async public void NotifyMasterAboutSlaveCreate()
+        public async void NotifyMasterAboutSlaveCreate()
         {
             using (var slave = new TcpClient())
             {
-                ISerializer<ServiceCommands> commandSerializer = new BsonSerializer<ServiceCommands>();
-                ISerializer<UsersCollection> collectionSerializer = new BsonSerializer<UsersCollection>();
-                await slave.ConnectAsync(masterEndPoint.Address, masterEndPoint.Port);
-                NetworkStream stream = slave.GetStream();
+                slave.Connect(masterEndPoint.Address, masterEndPoint.Port);
 
-                byte[] data = commandSerializer.Serialize(ServiceCommands.IS_CREATED);
-                await stream.WriteAsync(data, 0, data.Length);
-
-                using (var client = new Client(slave))
+                using (var client = new NetworkClient(slave))
                 {
-                    data = await client.ProcessAsync();
+                    client.WriteAsync(new NetworkData(null, ServiceCommands.IS_CREATED));
+                    users = (await client.ReadAsync<UsersCollection>(1024)).Users;
                 }
-                users = collectionSerializer.Deserialize(data).Users;
             }
         }
 
-        async public void UpdateByMasterCommand()
+        public async void UpdateByMasterCommand()
         {
             var listener = new TcpListener(slaveEndPoint);
             listener.Start();
@@ -81,22 +74,36 @@ namespace StorageLib.Storages
             while(true)
             {
                 var client = await listener.AcceptTcpClientAsync();
-                var tcpStream = client.GetStream();
+
+                using (var service = new NetworkClient(client))
+                {
+                    var data = await service.ReadAsync<NetworkData>(1024);
+
+                    switch (data.Command)
+                    {
+                        case ServiceCommands.ADD_USER:
+                            AddUserUpdate(data.User);
+                            break;
+                        case ServiceCommands.DELETE_USER:
+                            DeleteUserUpdate(data.User.Id);
+                            break;
+                    }
+                }
             }
         }
 
-        protected virtual void AddEventHandler(object sender, AddEventArgs e)
+        protected virtual void AddUserUpdate(User user)
         {
-            if (e.User != null)
+            if (user != null)
             {
-                Users.Add(e.User);
+                Users.Add(user);
             }
         }
 
-        protected virtual void DeleteEventHandler(object sender, DeleteEventArgs e)
+        protected virtual void DeleteUserUpdate(int id)
         {
             User user;
-            if ((user = Users.FirstOrDefault(u => u.Id == e.Id)) != null)
+            if ((user = Users.FirstOrDefault(u => u.Id == id)) != null)
             {
                 Users.Remove(user);
             }

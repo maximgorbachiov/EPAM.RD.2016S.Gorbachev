@@ -3,5 +3,6 @@
     public interface ISlaveStorage : IStorage
     {
         void NotifyMasterAboutSlaveCreate();
+        void UpdateByMasterCommand();
     }
 }

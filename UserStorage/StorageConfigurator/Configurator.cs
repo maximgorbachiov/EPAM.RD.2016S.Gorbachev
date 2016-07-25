@@ -8,6 +8,7 @@ using StorageInterfaces.IRepositories;
 using StorageInterfaces.IGenerators;
 using StorageInterfaces.IValidators;
 using System.Globalization;
+using System.Net;
 using System.Reflection;
 using StorageLib.Storages;
 
@@ -20,7 +21,7 @@ namespace StorageConfigurator
         private IStorage logService;
         private readonly List<SlaveStorage> storages = new List<SlaveStorage>();
         private AppDomain masterDomain;
-        private List<AppDomain> slaveDomains = new List<AppDomain>();
+        private readonly List<AppDomain> slaveDomains = new List<AppDomain>();
 
         public IStorage LogService => logService;
         public List<SlaveStorage> SlaveStorages => storages; 
@@ -42,10 +43,16 @@ namespace StorageConfigurator
 
             IMasterStorage masterStorage = CreateMasterStorage(servicesSection.MasterService, infoSection);
             masterStorage.Load();
+            //masterStorage.InitializeServices();
+            ((MasterStorage)masterStorage).MasterEndPoint = new IPEndPoint(servicesSection.MasterService.IPAddress, servicesSection.MasterService.Port);
 
             for (int i = 0; i < servicesSection.SlaveServices.Count; i++)
             {
-                IStorage slaveStorage = CreateSlaveStorage(servicesSection.SlaveServices[i], servicesSection.SlaveServices.SlaveServiceType);
+                ISlaveStorage slaveStorage = CreateSlaveStorage(servicesSection.SlaveServices[i], infoSection, 
+                    ((MasterStorage)masterStorage).MasterEndPoint, new IPEndPoint(servicesSection.SlaveServices[i].IPAddress, servicesSection.SlaveServices[i].Port),
+                    servicesSection.SlaveServices.SlaveServiceType);
+                //slaveStorage.NotifyMasterAboutSlaveCreate();
+                slaveStorage.UpdateByMasterCommand();
                 storages.Add((SlaveStorage)slaveStorage);
             }
 
@@ -72,8 +79,9 @@ namespace StorageConfigurator
                 new object[] { validator, generator, repository }, CultureInfo.InvariantCulture, null);
         }
 
-        private ISlaveStorage CreateSlaveStorage(SlaveServiceElement slaveInfo, string assemblyAndType)
+        private ISlaveStorage CreateSlaveStorage(SlaveServiceElement slaveInfo, ServicesInfoSection info, IPEndPoint masterEndPoint, IPEndPoint slaveEndPoint, string assemblyAndType)
         {
+            var repository = DependencyCreater.CreateDependency<IRepository>(info.Repository.Type, "IRepository", FILENAME);
             var slaveDomain = AppDomain.CreateDomain("Slave " + "№" + slaveDomains.Count);
             slaveDomains.Add(slaveDomain);
 
@@ -81,7 +89,7 @@ namespace StorageConfigurator
             string assembly = strings[1], type = strings[0];
 
             return (ISlaveStorage)masterDomain.CreateInstanceAndUnwrap(assembly, type, true, BindingFlags.CreateInstance, null,
-                new object[] { slaveInfo.Port, slaveInfo.IPAddress }, CultureInfo.InvariantCulture, null);
+                new object[] { repository, masterEndPoint, slaveEndPoint }, CultureInfo.InvariantCulture, null);
         }
 
         private string[] GetAssemblyAndType(string assemblyAndType)
