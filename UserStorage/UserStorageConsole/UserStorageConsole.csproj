@@ -57,6 +57,14 @@
       <Project>{aa2e60fb-aea5-4e34-aebf-9f0663387bb2}</Project>
       <Name>StorageConfigurator</Name>
     </ProjectReference>
+    <ProjectReference Include="..\StorageInterfaces\StorageInterfaces.csproj">
+      <Project>{A0DD8A3D-C80F-4064-8832-8120300E8DF7}</Project>
+      <Name>StorageInterfaces</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\StorageLib\StorageLib.csproj">
+      <Project>{01842DAD-604F-4E1F-9DBD-3C1B6FDDCD33}</Project>
+      <Name>StorageLib</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

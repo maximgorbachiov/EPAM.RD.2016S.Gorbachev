@@ -45,6 +45,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="NetworkClients\NetworkClient.cs" />
+    <Compile Include="NetworkClients\TcpClientExtension.cs" />
     <Compile Include="Repositories\MemoryRepository.cs" />
     <Compile Include="Repositories\XMLRepository.cs" />
     <Compile Include="Serializers\BsonSerializer.cs" />

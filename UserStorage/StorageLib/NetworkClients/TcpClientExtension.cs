@@ -8,27 +8,16 @@ using StorageLib.Services;
 
 namespace Storage.NetworkClients
 {
-    public class NetworkClient : IDisposable
+    public static class TcpClientExtension
     {
-        protected NetworkStream stream;
-
-        public NetworkClient(TcpClient client)
-        {
-            stream = client.GetStream();
-        }
-
-        public void Dispose()
-        {
-            stream.Dispose();
-        }
-
-        protected virtual async Task<T> ReadFromStreamAsync<T>(int bufferSize)
+        public static async Task<T> ReadAsync<T>(this TcpClient client, int bufferSize)
         {
             ISerializer<T> serializer = new BsonSerializer<T>();
             byte[] result;
 
             try
             {
+                var stream = client.GetStream();
                 List<byte[]> list = new List<byte[]>();
                 int resultLength = 0, i = 0;
 
@@ -82,42 +71,15 @@ namespace Storage.NetworkClients
             return serializer.Deserialize(result);
         }
 
-        protected virtual async Task WriteToStreamAsync<T>(T data)
+        public static async Task WriteAsync<T>(this TcpClient client, T data)
         {
             ISerializer<T> serializer = new BsonSerializer<T>();
             byte[] serializedData = serializer.Serialize(data);
 
             try
             {
+                var stream = client.GetStream();
                 await stream.WriteAsync(serializedData, 0, serializedData.Length);
-            }
-            catch (ObjectDisposedException oDEx)
-            {
-                LogService.Service.TraceInfo(oDEx.Message);
-                LogService.Service.TraceInfo(oDEx.InnerException.Message);
-                LogService.Service.TraceInfo(oDEx.ObjectName);
-                LogService.Service.TraceInfo(oDEx.StackTrace);
-                throw;
-            }
-            catch (NullReferenceException nREx)
-            {
-                LogService.Service.TraceInfo(nREx.Message);
-                LogService.Service.TraceInfo(nREx.StackTrace);
-                throw;
-            }
-        }
-
-        public async Task<T> ReadAsync<T>(int bufferSize)
-        {
-            return await ReadFromStreamAsync<T>(bufferSize);
-        }
-
-        public async void WriteAsync<T>(T data)
-        {
-            try
-            {
-                await WriteToStreamAsync(data);
-                LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } wrote info");
             }
             catch (ObjectDisposedException oDEx)
             {

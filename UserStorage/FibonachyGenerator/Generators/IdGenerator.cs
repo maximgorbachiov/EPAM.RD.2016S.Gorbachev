@@ -26,7 +26,7 @@ namespace FibonachyGenerator.Generators
 
         public void SetGeneratorState(int value)
         {
-            while (iterator.Current <= value)
+            while (iterator.Current < value)
             {
                 iterator.MoveNext();
             }

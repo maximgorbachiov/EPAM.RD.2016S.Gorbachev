@@ -1,5 +1,4 @@
 ﻿using System.Configuration;
-using System.Net;
 
 namespace StorageConfigurator.ConfigSection
 {
@@ -12,10 +11,10 @@ namespace StorageConfigurator.ConfigSection
             set { base["port"] = value; }
         }
 
-        [ConfigurationProperty("ipaddress", DefaultValue = default(IPAddress), IsKey = false, IsRequired = false)]
-        public IPAddress IPAddress
+        [ConfigurationProperty("ipaddress", DefaultValue = "127.0.0.1", IsKey = false, IsRequired = false)]
+        public string IPAddress
         {
-            get { return ((IPAddress)(base["ipaddress"])); }
+            get { return ((string)(base["ipaddress"])); }
             set { base["ipaddress"] = value; }
         }
     }

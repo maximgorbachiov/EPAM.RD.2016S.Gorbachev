@@ -1,61 +1,27 @@
-﻿using StorageInterfaces.Entities;
-using StorageInterfaces.IStorages;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Diagnostics;
 
 namespace StorageLib.Services
 {
-    public class LogService : IStorage
+    public class LogService
     {
-        private readonly IMasterStorage masterStorage;
         private readonly BooleanSwitch boolSwitch;
-        private readonly TraceSource trace;
+        private readonly TraceSource traceSource;
 
-        public List<User> Users => masterStorage.Users;
+        private static readonly Lazy<LogService> logService = new Lazy<LogService>(() => new LogService());
 
-        public LogService(IMasterStorage masterStorage, string boolSwitchName, string traceSource)
+        public static LogService Service => logService.Value;
+
+        private LogService()
         {
-            if (masterStorage == null)
-            {
-                if (boolSwitch.Enabled)
-                    trace.TraceEvent(TraceEventType.Error, 0, "User service is null!");
-                throw new ArgumentNullException(nameof(masterStorage));
-            }
             boolSwitch = new BooleanSwitch("boolSwitch", "");
-            trace = new TraceSource("trace");
-            this.masterStorage = masterStorage;
+            traceSource = new TraceSource("traceSource");
         }
 
-        public int AddUser(User user)
+        public void TraceInfo(string info)
         {
             if (boolSwitch.Enabled)
-                trace.TraceEvent(TraceEventType.Information, 0, "Add work!");
-            return masterStorage.AddUser(user);
-        }
-
-        public List<int> SearchBy(IComparer<User> criteria, User user)
-        {
-            if (boolSwitch.Enabled)
-                trace.TraceEvent(TraceEventType.Information, 0, "Search work!");
-            return masterStorage.SearchBy(criteria, user);
-        }
-
-        public void DeleteUser(int id)
-        {
-            if (boolSwitch.Enabled)
-                trace.TraceEvent(TraceEventType.Information, 0, "Delete work!");
-            masterStorage.DeleteUser(id);
-        }
-
-        public void Load()
-        {
-            masterStorage.Load();
-        }
-
-        public void Save()
-        {
-            masterStorage.Save();
+                traceSource.TraceEvent(TraceEventType.Information, 0, info);
         }
     }
 }

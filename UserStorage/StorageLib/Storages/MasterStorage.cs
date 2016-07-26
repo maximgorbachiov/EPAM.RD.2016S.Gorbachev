@@ -10,6 +10,7 @@ using System.Net;
 using System.Net.Sockets;
 using Storage.NetworkClients;
 using StorageInterfaces.CommunicationEntities;
+using StorageLib.Services;
 
 namespace StorageLib.Storages
 {
@@ -20,16 +21,19 @@ namespace StorageLib.Storages
         private readonly IRepository repository;
 
         private List<User> users = new List<User>();
+        private IPEndPoint masterEndPoint;
         private readonly List<IPEndPoint> slavesEndPoints = new List<IPEndPoint>(); 
 
         public List<User> Users => users;
-        public IPEndPoint MasterEndPoint { get; set; }
 
-        public MasterStorage(IValidator validator, IGenerator generator, IRepository repository)
+        public MasterStorage(IValidator validator, IGenerator generator, IRepository repository, MasterConnectionData data)
         {
             this.validator = validator;
             this.generator = generator;
             this.repository = repository;
+            this.masterEndPoint = data.MasterEndPoint;
+            this.slavesEndPoints = data.SlavesEndPoints;
+            LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } created");
         }
 
         public int AddUser(User user)
@@ -51,6 +55,7 @@ namespace StorageLib.Storages
 
             user.Id = generator.Current;
             users.Add(user);
+            LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } add user №{ user.Id }");
             NotifyServicesAboutDataUpdate(new NetworkData(user, ServiceCommands.ADD_USER));
             return user.Id;
         }
@@ -64,6 +69,7 @@ namespace StorageLib.Storages
 
             var user = users.FirstOrDefault(u => u.Id == id);
             users.Remove(user);
+            LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } delete user №{ id }");
             NotifyServicesAboutDataUpdate(new NetworkData(user, ServiceCommands.DELETE_USER));
         }
 
@@ -86,18 +92,20 @@ namespace StorageLib.Storages
         public void Load()
         {
             ServiceState lastState = repository.Load();
-            users = lastState.Users;
+            users = lastState.Users ?? new List<User>();
             generator.SetGeneratorState(lastState.LastId);
+            LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } loaded");
         }
 
         public void Save()
         {
             repository.Save(new ServiceState { Users = users, LastId = generator.Current });
+            LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } saved his state");
         }
 
         public async void InitializeServices()
         {
-            var listener = new TcpListener(MasterEndPoint);
+            var listener = new TcpListener(masterEndPoint);
             listener.Start();
 
             while (true)
@@ -124,13 +132,21 @@ namespace StorageLib.Storages
         {
             foreach (var slave in slavesEndPoints)
             {
+                /*using (var host = new NetworkClient(tcpClient))
+                {
+                    LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } try to notify slave with port { slave.Port }");
+                    host.WriteAsync(data);
+                    LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } notify slave with port { slave.Port }");
+                }*/
                 using (var tcpClient = new TcpClient())
                 {
+                    LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } try to connect to slave with port { slave.Port }");
                     await tcpClient.ConnectAsync(slave.Address, slave.Port);
-                    using (var host = new NetworkClient(tcpClient))
-                    {
-                        host.WriteAsync(data);
-                    }
+                    LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } connected to slave with port { slave.Port }");
+
+                    LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } try to notify slave with port { slave.Port }");
+                    await tcpClient.WriteAsync(data);
+                    LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } notify slave with port { slave.Port }");
                 }
             }
         }

@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Configuration;
-using StorageLib.Services;
 using StorageInterfaces.IStorages;
 using StorageInterfaces.IRepositories;
 using StorageInterfaces.IGenerators;
@@ -10,6 +9,7 @@ using StorageInterfaces.IValidators;
 using System.Globalization;
 using System.Net;
 using System.Reflection;
+using StorageInterfaces.CommunicationEntities;
 using StorageLib.Storages;
 
 namespace StorageConfigurator
@@ -18,18 +18,22 @@ namespace StorageConfigurator
     {
         private const string FILENAME = "fileName";
 
-        private IStorage logService;
+        private IMasterStorage masterStorage;
         private readonly List<SlaveStorage> storages = new List<SlaveStorage>();
         private AppDomain masterDomain;
         private readonly List<AppDomain> slaveDomains = new List<AppDomain>();
 
-        public IStorage LogService => logService;
+        public IMasterStorage MasterStorage => masterStorage;
         public List<SlaveStorage> SlaveStorages => storages; 
 
         public void Load()
         {
             var servicesSection = (ServicesSection)ConfigurationManager.GetSection("Services");
             var infoSection = (ServicesInfoSection)ConfigurationManager.GetSection("ServicesInfo");
+            var masterInfo = servicesSection.MasterService;
+            var slavesInfo = servicesSection.SlaveServices;
+            var slavesEndPoints = new List<IPEndPoint>();
+            var masterEndPoint = new IPEndPoint(IPAddress.Parse(masterInfo.IPAddress), masterInfo.Port);
 
             if (servicesSection == null)
             {
@@ -41,80 +45,60 @@ namespace StorageConfigurator
                 throw new NullReferenceException("Unable to read service info section from config.");
             }
 
-            IMasterStorage masterStorage = CreateMasterStorage(servicesSection.MasterService, infoSection);
-            masterStorage.Load();
-            //masterStorage.InitializeServices();
-            ((MasterStorage)masterStorage).MasterEndPoint = new IPEndPoint(servicesSection.MasterService.IPAddress, servicesSection.MasterService.Port);
-
-            for (int i = 0; i < servicesSection.SlaveServices.Count; i++)
+            for (int i = 0; i < slavesInfo.Count; i++)
             {
-                ISlaveStorage slaveStorage = CreateSlaveStorage(servicesSection.SlaveServices[i], infoSection, 
-                    ((MasterStorage)masterStorage).MasterEndPoint, new IPEndPoint(servicesSection.SlaveServices[i].IPAddress, servicesSection.SlaveServices[i].Port),
-                    servicesSection.SlaveServices.SlaveServiceType);
-                //slaveStorage.NotifyMasterAboutSlaveCreate();
+                var slaveEndPoint = new IPEndPoint(IPAddress.Parse(slavesInfo[i].IPAddress), slavesInfo[i].Port);
+                var slaveData = new SlaveConnectionData { MasterEndPoint = masterEndPoint, SlaveEndPoint = slaveEndPoint };
+                slavesEndPoints.Add(slaveEndPoint);
+                ISlaveStorage slaveStorage = CreateSlaveStorage(infoSection, slaveData, slavesInfo.SlaveServiceType);
                 slaveStorage.UpdateByMasterCommand();
                 storages.Add((SlaveStorage)slaveStorage);
             }
 
-            logService = new LogService(masterStorage, "boolSwitch", "trace");
+            var data = new MasterConnectionData { MasterEndPoint = masterEndPoint, SlavesEndPoints = slavesEndPoints };
+            masterStorage = CreateMasterStorage(masterInfo, infoSection, data);
+            masterStorage.Load();
         }
 
         public void Save()
         {
-            ((IMasterStorage)logService).Save();
+            masterStorage.Save();
         }
 
-        private IMasterStorage CreateMasterStorage(MasterServiceElement masterInfo, ServicesInfoSection info)
+        private IMasterStorage CreateMasterStorage(MasterServiceElement masterInfo, ServicesInfoSection info, MasterConnectionData data)
         {
             masterDomain = AppDomain.CreateDomain("Master");
 
-            var repository = DependencyCreater.CreateDependency<IRepository>(info.Repository.Type, "IRepository", FILENAME);
-            var generator = DependencyCreater.CreateDependency<IGenerator>(info.Generator.Type, "IGenerator");
-            var validator = DependencyCreater.CreateDependency<IValidator>(info.Validator.Type, "IValidator");
+            var repository = DependencyCreater.CreateDependency<IRepository>(info.Repository.Type, FILENAME);
+            var generator = DependencyCreater.CreateDependency<IGenerator>(info.Generator.Type);
+            var validator = DependencyCreater.CreateDependency<IValidator>(info.Validator.Type);
 
-            string[] strings = GetAssemblyAndType(masterInfo.MasterServiceType);
-            string assembly = strings[1], type = strings[0]; 
-            
-            return (IMasterStorage)masterDomain.CreateInstanceAndUnwrap(assembly, type, true, BindingFlags.CreateInstance, null, 
-                new object[] { validator, generator, repository }, CultureInfo.InvariantCulture, null);
+            var type = Type.GetType(masterInfo.MasterServiceType);
+
+            if (type == null)
+            {
+                throw new ConfigurationErrorsException($"Invalid type { type } of { masterDomain.FriendlyName } domain");
+            }
+
+            return (IMasterStorage)masterDomain.CreateInstanceAndUnwrap(type.Assembly.FullName, type.FullName, true, BindingFlags.CreateInstance, null, 
+                new object[] { validator, generator, repository, data }, CultureInfo.InvariantCulture, null);
         }
 
-        private ISlaveStorage CreateSlaveStorage(SlaveServiceElement slaveInfo, ServicesInfoSection info, IPEndPoint masterEndPoint, IPEndPoint slaveEndPoint, string assemblyAndType)
+        private ISlaveStorage CreateSlaveStorage(ServicesInfoSection info, SlaveConnectionData data, string assemblyAndType)
         {
-            var repository = DependencyCreater.CreateDependency<IRepository>(info.Repository.Type, "IRepository", FILENAME);
-            var slaveDomain = AppDomain.CreateDomain("Slave " + "№" + slaveDomains.Count);
+            var repository = DependencyCreater.CreateDependency<IRepository>(info.Repository.Type, FILENAME);
+            var slaveDomain = AppDomain.CreateDomain($"Slave №{ slaveDomains.Count }");
             slaveDomains.Add(slaveDomain);
 
-            string[] strings = GetAssemblyAndType(assemblyAndType);
-            string assembly = strings[1], type = strings[0];
+            var type = Type.GetType(assemblyAndType);
 
-            return (ISlaveStorage)masterDomain.CreateInstanceAndUnwrap(assembly, type, true, BindingFlags.CreateInstance, null,
-                new object[] { repository, masterEndPoint, slaveEndPoint }, CultureInfo.InvariantCulture, null);
-        }
-
-        private string[] GetAssemblyAndType(string assemblyAndType)
-        {
-            if (assemblyAndType == null)
+            if (type == null)
             {
-                throw new NullReferenceException(nameof(assemblyAndType));
+                throw new ConfigurationErrorsException($"Invalid type { type } of { slaveDomain.FriendlyName } domain");
             }
 
-            string[] strings = assemblyAndType.Split(' ');
-            string[] result = new string[2];
-            int j = 0;
-
-            for(int i = 0; i < strings.Length; i++)
-            {
-                if (strings[i] != " ")
-                {
-                    result[j] = strings[i];
-                    j++;
-                }
-            }
-
-            result[0] = result[0].Remove(result[0].Length - 1, 1);
-
-            return result;
+            return (ISlaveStorage)slaveDomain.CreateInstanceAndUnwrap(type.Assembly.FullName, type.FullName, true, BindingFlags.CreateInstance, null,
+                new object[] { repository, data }, CultureInfo.InvariantCulture, null);
         }
     }
 }

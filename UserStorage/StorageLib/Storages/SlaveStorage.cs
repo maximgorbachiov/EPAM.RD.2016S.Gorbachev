@@ -8,6 +8,7 @@ using StorageInterfaces.CommunicationEntities;
 using System.Net.Sockets;
 using Storage.NetworkClients;
 using StorageInterfaces.IRepositories;
+using StorageLib.Services;
 
 namespace StorageLib.Storages
 {
@@ -18,12 +19,15 @@ namespace StorageLib.Storages
         private List<User> users = new List<User>();
 
         public List<User> Users => users;
+        public IPEndPoint SlavEndPoint => slaveEndPoint;
 
-        public SlaveStorage(IRepository repository, IPEndPoint slaveEndPoint, IPEndPoint masterEndPoint)
+        public SlaveStorage(IRepository repository, SlaveConnectionData data)
         {
-            this.slaveEndPoint = slaveEndPoint;
-            this.masterEndPoint = masterEndPoint;
+            slaveEndPoint = data.SlaveEndPoint;
+            masterEndPoint = data.MasterEndPoint;
             users = repository.Load().Users;
+            LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } is created");
+            LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } is load");
         }
 
         public int AddUser(User user)
@@ -71,24 +75,64 @@ namespace StorageLib.Storages
             var listener = new TcpListener(slaveEndPoint);
             listener.Start();
 
-            while(true)
+            try
             {
-                var client = await listener.AcceptTcpClientAsync();
-
-                using (var service = new NetworkClient(client))
+                while (true)
                 {
-                    var data = await service.ReadAsync<NetworkData>(1024);
+                    /*LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } wait for active connections");
+                    var client = await listener.AcceptTcpClientAsync();
+                    LogService.Service.TraceInfo($"{AppDomain.CurrentDomain.FriendlyName} accept client with port {((IPEndPoint)client.Client.RemoteEndPoint).Port}");
 
-                    switch (data.Command)
+                    using (var service = new NetworkClient(client))
                     {
-                        case ServiceCommands.ADD_USER:
-                            AddUserUpdate(data.User);
-                            break;
-                        case ServiceCommands.DELETE_USER:
-                            DeleteUserUpdate(data.User.Id);
-                            break;
+                        LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } try to read info from client with port {((IPEndPoint)client.Client.RemoteEndPoint).Port}");
+                        var data = await service.ReadAsync<NetworkData>(1024);
+                        LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } read info from client with port {((IPEndPoint)client.Client.RemoteEndPoint).Port}");
+                        switch (data.Command)
+                        {
+                            case ServiceCommands.ADD_USER:
+                                AddUserUpdate(data.User);
+                                LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } is added user { data.User.Id }");
+                                break;
+                            case ServiceCommands.DELETE_USER:
+                                DeleteUserUpdate(data.User.Id);
+                                LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } is deleted user { data.User.Id }");
+                                break;
+                        }
+                    }*/
+                    using (var client = await listener.AcceptTcpClientAsync())
+                    {
+                        LogService.Service.TraceInfo($"{AppDomain.CurrentDomain.FriendlyName} accept client with port {((IPEndPoint)client.Client.RemoteEndPoint).Port}");
+                        LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } try to read info from client with port {((IPEndPoint)client.Client.RemoteEndPoint).Port}");
+                        var data = await client.ReadAsync<NetworkData>(1024);
+                        LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } read info from client with port {((IPEndPoint)client.Client.RemoteEndPoint).Port}");
+                        switch (data.Command)
+                        {
+                            case ServiceCommands.ADD_USER:
+                                AddUserUpdate(data.User);
+                                LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } is added user { data.User.Id }");
+                                break;
+                            case ServiceCommands.DELETE_USER:
+                                DeleteUserUpdate(data.User.Id);
+                                LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } is deleted user { data.User.Id }");
+                                break;
+                        }
                     }
                 }
+            }
+            catch (ObjectDisposedException oDEx)
+            {
+                LogService.Service.TraceInfo(oDEx.Message);
+                LogService.Service.TraceInfo(oDEx.InnerException.Message);
+                LogService.Service.TraceInfo(oDEx.ObjectName);
+                LogService.Service.TraceInfo(oDEx.StackTrace);
+                throw;
+            }
+            catch (NullReferenceException nREx)
+            {
+                LogService.Service.TraceInfo(nREx.Message);
+                LogService.Service.TraceInfo(nREx.StackTrace);
+                throw;
             }
         }
 

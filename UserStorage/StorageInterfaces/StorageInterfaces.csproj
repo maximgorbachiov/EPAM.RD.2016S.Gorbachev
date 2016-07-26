@@ -43,8 +43,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CommunicationEntities\MasterConnectionData.cs" />
     <Compile Include="CommunicationEntities\NetworkData.cs" />
     <Compile Include="CommunicationEntities\ServiceCommands.cs" />
+    <Compile Include="CommunicationEntities\SlaveConnectionData.cs" />
     <Compile Include="CommunicationEntities\UsersCollection.cs" />
     <Compile Include="Entities\CountryVisa.cs" />
     <Compile Include="Entities\Gender.cs" />
