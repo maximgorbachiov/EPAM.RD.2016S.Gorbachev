@@ -33,6 +33,8 @@
     <Reference Include="System" />
     <Reference Include="System.configuration" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -41,12 +43,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ConfigSection\MasterServiceElement.cs" />
     <Compile Include="ConfigSection\ServicesInfoSection.cs" />
     <Compile Include="ConfigSection\ServicesSection.cs" />
     <Compile Include="ConfigSection\TypeInfoElement.cs" />
-    <Compile Include="ConfigSection\SlaveServiceElement.cs" />
-    <Compile Include="ConfigSection\SlaveServicesCollection.cs" />
+    <Compile Include="ConfigSection\ServiceElement.cs" />
+    <Compile Include="ConfigSection\ServicesCollection.cs" />
     <Compile Include="Configurator.cs" />
     <Compile Include="DependencyCreater.cs" />
     <Compile Include="IConfigurator.cs" />
@@ -67,6 +68,11 @@
       <Project>{01842dad-604f-4e1f-9dbd-3c1b6fddcd33}</Project>
       <Name>StorageLib</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+    <None Include="Properties\DataSources\StorageInterfaces.CommunicationEntities.WcfEntities.UserDataContract.datasource" />
+    <None Include="Properties\DataSources\StorageInterfaces.Entities.User.datasource" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

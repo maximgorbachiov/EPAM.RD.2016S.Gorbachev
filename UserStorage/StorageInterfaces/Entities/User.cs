@@ -4,7 +4,7 @@ namespace StorageInterfaces.Entities
 {
     [Serializable]
     public class User : ICloneable
-    {
+    { 
         public int Id { get; set; }
         public string Name { get; set; }
         public string SecondName { get; set; }
