@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Configuration;
-using StorageInterfaces.IStorages;
 using StorageInterfaces.IRepositories;
 using StorageInterfaces.IGenerators;
 using StorageInterfaces.IValidators;
@@ -11,9 +10,11 @@ using System.Net;
 using System.Reflection;
 using System.ServiceModel;
 using System.ServiceModel.Description;
-using Storage.Services;
 using StorageInterfaces.CommunicationEntities;
+using StorageInterfaces.Entities;
+using StorageInterfaces.INetworkConnections;
 using StorageInterfaces.IServices;
+using StorageInterfaces.IWcfServices;
 using StorageLib.Services;
 using StorageLib.Storages;
 
@@ -23,13 +24,13 @@ namespace StorageConfigurator
     {
         private const string FILENAME = "fileName";
 
-        private IMasterStorage masterStorage;
-        private readonly List<SlaveStorage> storages = new List<SlaveStorage>();
+        private IService masterService;
+        private readonly List<SlaveService> services = new List<SlaveService>();
         private AppDomain masterDomain;
         private readonly List<AppDomain> slaveDomains = new List<AppDomain>();
 
-        public IMasterStorage MasterStorage => masterStorage;
-        public List<SlaveStorage> SlaveStorages => storages; 
+        public IService MasterService => masterService;
+        public List<SlaveService> SlaveServices => services; 
 
         public void Load()
         {
@@ -68,29 +69,35 @@ namespace StorageConfigurator
             {
                 var slaveEndPoint = new IPEndPoint(IPAddress.Parse(slave.IpAddress), slave.Port);
                 slavesEndPoints.Add(slaveEndPoint);
-                var slaveData = new SlaveConnectionData { MasterEndPoint = masterEndPoint, SlaveEndPoint = slaveEndPoint };
-                ISlaveStorage slaveStorage = CreateSlaveStorage(slave.ServiceType, infoSection, slaveData);
-                slaveStorage.UpdateByMasterCommand();
-                storages.Add((SlaveStorage)slaveStorage);
+
+                IService slaveService = CreateSlaveService(slave.ServiceType, infoSection, slaveEndPoint);
+                ((IListener)slaveService).UpdateByMasterCommand();
+                services.Add((SlaveService)slaveService);
             }
 
             var data = new MasterConnectionData { MasterEndPoint = masterEndPoint, SlavesEndPoints = slavesEndPoints };
-            CreateMasterStorage(master?.ServiceType, master?.HostAddress, infoSection, data);
-            masterStorage.Load();
+            CreateMasterService(master?.ServiceType, master?.HostAddress, infoSection, data);
+            ((ILoader)masterService).Load();
         }
 
         public void Save()
         {
-            masterStorage.Save();
+            ((ILoader)masterService).Save();
         }
 
-        private void CreateMasterStorage(string masterType, string serviceAddress, ServicesInfoSection info, MasterConnectionData data)
+        private void CreateMasterService(string masterType, string serviceAddress, ServicesInfoSection info, MasterConnectionData data)
         {
-            masterDomain = AppDomain.CreateDomain("Master");
+            var masterParams = new Dictionary<Type, TypeEntity>
+            {
+                { typeof (IRepository), new TypeEntity(info.Repository.Type, FILENAME) },
+                { typeof (IGenerator), new TypeEntity(info.Generator.Type) },
+                { typeof (IValidator), new TypeEntity(info.Validator.Type) },
+                { typeof (INetworkNotificator), new TypeEntity(info.NetworkNotificator.Type, data) }
+            };
 
-            var repository = DependencyCreater.CreateDependency<IRepository>(info.Repository.Type, FILENAME);
-            var generator = DependencyCreater.CreateDependency<IGenerator>(info.Generator.Type);
-            var validator = DependencyCreater.CreateDependency<IValidator>(info.Validator.Type);
+            var factory = new DependencyCreater(masterParams);
+
+            masterDomain = AppDomain.CreateDomain("Master");
 
             var type = Type.GetType(masterType);
 
@@ -99,13 +106,14 @@ namespace StorageConfigurator
                 throw new ConfigurationErrorsException($"Invalid type of { masterDomain.FriendlyName } domain");
             }
 
-            var master = (IMasterStorage)masterDomain.CreateInstanceAndUnwrap(type.Assembly.FullName, type.FullName, true, BindingFlags.CreateInstance, null, 
-                new object[] { validator, generator, repository, data }, CultureInfo.InvariantCulture, null);
+            var master = (IService)masterDomain.CreateInstanceAndUnwrap(type.Assembly.FullName, type.FullName, true, BindingFlags.CreateInstance, null, 
+                new object[] { factory }, CultureInfo.InvariantCulture, null);
 
             var address = new Uri(serviceAddress);
+            var wcfService = new WcfService(master);
 
             using (var host = (ServiceHost)masterDomain.CreateInstanceAndUnwrap(typeof(ServiceHost).Assembly.FullName, typeof(ServiceHost).FullName, true, BindingFlags.CreateInstance, null,
-                new object[] { typeof(WcfService), address }, CultureInfo.InvariantCulture, null))
+                new object[] { wcfService, address }, CultureInfo.InvariantCulture, null))
             {
                 // Enable metadata publishing.
                 var smb = new ServiceMetadataBehavior
@@ -126,9 +134,15 @@ namespace StorageConfigurator
             }
         }
 
-        private ISlaveStorage CreateSlaveStorage(string slaveType, ServicesInfoSection info, SlaveConnectionData data)
+        private IService CreateSlaveService(string slaveType, ServicesInfoSection info, IPEndPoint slaveEndPoint)
         {
-            var repository = DependencyCreater.CreateDependency<IRepository>(info.Repository.Type, FILENAME);
+            var slavesParams = new Dictionary<Type, TypeEntity>
+            {
+                { typeof (IRepository), new TypeEntity(info.Repository.Type, FILENAME) },
+                { typeof (INetworkUpdater), new TypeEntity(info.NetworkUpdater.Type, slaveEndPoint) }
+            };
+            var factory = new DependencyCreater(slavesParams);
+
             var slaveDomain = AppDomain.CreateDomain($"Slave №{ slaveDomains.Count }");
             slaveDomains.Add(slaveDomain);
 
@@ -139,8 +153,8 @@ namespace StorageConfigurator
                 throw new ConfigurationErrorsException($"Invalid type of { slaveDomain.FriendlyName } domain");
             }
 
-            return (ISlaveStorage)slaveDomain.CreateInstanceAndUnwrap(type.Assembly.FullName, type.FullName, true, BindingFlags.CreateInstance, null,
-                new object[] { repository, data }, CultureInfo.InvariantCulture, null);
+            return (IService)slaveDomain.CreateInstanceAndUnwrap(type.Assembly.FullName, type.FullName, true, BindingFlags.CreateInstance, null,
+                new object[] { factory }, CultureInfo.InvariantCulture, null);
         }
     }
 }

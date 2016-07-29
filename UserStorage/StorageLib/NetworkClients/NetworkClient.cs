@@ -2,13 +2,14 @@
 using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Threading.Tasks;
+using StorageInterfaces.INetworkConnections;
 using StorageInterfaces.ISerializers;
 using StorageLib.Serializers;
 using StorageLib.Services;
 
 namespace Storage.NetworkClients
 {
-    public class NetworkClient : IDisposable
+    public class NetworkClient : INetworkIO, IDisposable
     {
         protected NetworkStream stream;
 
@@ -22,10 +23,32 @@ namespace Storage.NetworkClients
             stream.Dispose();
         }
 
+        public async Task<T> ReadAsync<T>(int bufferSize)
+        {
+            return await ReadFromStreamAsync<T>(bufferSize);
+        }
+
+        public async void WriteAsync<T>(T data)
+        {
+            try
+            {
+                await WriteToStreamAsync(data);
+                LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } wrote info");
+            }
+            catch (ObjectDisposedException oDEx)
+            {
+                LogService.Service.TraceInfo(oDEx.Message);
+            }
+            catch (NullReferenceException nREx)
+            {
+                LogService.Service.TraceInfo(nREx.Message);
+            }
+        }
+
         protected virtual async Task<T> ReadFromStreamAsync<T>(int bufferSize)
         {
             ISerializer<T> serializer = new BsonSerializer<T>();
-            byte[] result;
+            byte[] result = { };
 
             try
             {
@@ -66,16 +89,10 @@ namespace Storage.NetworkClients
             catch (ObjectDisposedException oDEx)
             {
                 LogService.Service.TraceInfo(oDEx.Message);
-                LogService.Service.TraceInfo(oDEx.InnerException.Message);
-                LogService.Service.TraceInfo(oDEx.ObjectName);
-                LogService.Service.TraceInfo(oDEx.StackTrace);
-                throw;
             }
             catch (NullReferenceException nREx)
             {
                 LogService.Service.TraceInfo(nREx.Message);
-                LogService.Service.TraceInfo(nREx.StackTrace);
-                throw;
             }
 
             LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } read info");
@@ -94,44 +111,10 @@ namespace Storage.NetworkClients
             catch (ObjectDisposedException oDEx)
             {
                 LogService.Service.TraceInfo(oDEx.Message);
-                LogService.Service.TraceInfo(oDEx.InnerException.Message);
-                LogService.Service.TraceInfo(oDEx.ObjectName);
-                LogService.Service.TraceInfo(oDEx.StackTrace);
-                throw;
             }
             catch (NullReferenceException nREx)
             {
                 LogService.Service.TraceInfo(nREx.Message);
-                LogService.Service.TraceInfo(nREx.StackTrace);
-                throw;
-            }
-        }
-
-        public async Task<T> ReadAsync<T>(int bufferSize)
-        {
-            return await ReadFromStreamAsync<T>(bufferSize);
-        }
-
-        public async void WriteAsync<T>(T data)
-        {
-            try
-            {
-                await WriteToStreamAsync(data);
-                LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } wrote info");
-            }
-            catch (ObjectDisposedException oDEx)
-            {
-                LogService.Service.TraceInfo(oDEx.Message);
-                LogService.Service.TraceInfo(oDEx.InnerException.Message);
-                LogService.Service.TraceInfo(oDEx.ObjectName);
-                LogService.Service.TraceInfo(oDEx.StackTrace);
-                throw;
-            }
-            catch (NullReferenceException nREx)
-            {
-                LogService.Service.TraceInfo(nREx.Message);
-                LogService.Service.TraceInfo(nREx.StackTrace);
-                throw;
             }
         }
     }

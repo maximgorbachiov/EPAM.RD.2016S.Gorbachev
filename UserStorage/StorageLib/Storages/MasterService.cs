@@ -1,38 +1,33 @@
 ﻿using StorageInterfaces.Entities;
 using StorageInterfaces.IGenerators;
 using StorageInterfaces.IRepositories;
-using StorageInterfaces.IStorages;
 using StorageInterfaces.IValidators;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using System.Net.Sockets;
-using Storage.NetworkClients;
 using StorageInterfaces.CommunicationEntities;
+using StorageInterfaces.IFactories;
+using StorageInterfaces.INetworkConnections;
+using StorageInterfaces.IServices;
 using StorageLib.Services;
 
 namespace StorageLib.Storages
 {
-    public class MasterStorage : MarshalByRefObject, IMasterStorage
+    public class MasterService : MarshalByRefObject, IService, ILoader
     {
         private readonly IValidator validator;
         private readonly IGenerator generator;
         private readonly IRepository repository;
+        private readonly INetworkNotificator networkNotificator;
 
         private List<User> users = new List<User>();
-        private IPEndPoint masterEndPoint;
-        private readonly List<IPEndPoint> slavesEndPoints = new List<IPEndPoint>(); 
 
-        public List<User> Users => users;
-
-        public MasterStorage(IValidator validator, IGenerator generator, IRepository repository, MasterConnectionData data)
+        public MasterService(IFactory factory)
         {
-            this.validator = validator;
-            this.generator = generator;
-            this.repository = repository;
-            this.masterEndPoint = data.MasterEndPoint;
-            this.slavesEndPoints = data.SlavesEndPoints;
+            validator = factory.CreateDependency<IValidator>();
+            generator = factory.CreateDependency<IGenerator>();
+            repository = factory.CreateDependency<IRepository>();
+            networkNotificator = factory.CreateDependency<INetworkNotificator>();
             LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } created");
         }
 
@@ -56,7 +51,7 @@ namespace StorageLib.Storages
             user.Id = generator.Current;
             users.Add(user);
             LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } add user №{ user.Id }");
-            NotifyServicesAboutDataUpdate(new NetworkData(user, ServiceCommands.ADD_USER));
+            networkNotificator.NotifyServicesAboutDataUpdate(new NetworkData(user, ServiceCommands.ADD_USER));
             return user.Id;
         }
 
@@ -70,7 +65,7 @@ namespace StorageLib.Storages
             var user = users.FirstOrDefault(u => u.Id == id);
             users.Remove(user);
             LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } delete user №{ id }");
-            NotifyServicesAboutDataUpdate(new NetworkData(user, ServiceCommands.DELETE_USER));
+            networkNotificator.NotifyServicesAboutDataUpdate(new NetworkData(user, ServiceCommands.DELETE_USER));
         }
 
         public List<int> SearchBy(IComparer<User> comparator, User searchingUser)
@@ -84,9 +79,13 @@ namespace StorageLib.Storages
             {
                 throw new NullReferenceException(nameof(searchingUser));
             }
-
-            return users.Where(user => comparator.Compare(user, searchingUser) == 0)
+            
+            var usersId = users.Where(user => comparator.Compare(user, searchingUser) == 0)
                 .Select(user => user.Id).ToList();
+            
+            LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } find users");
+
+            return usersId;
         }
 
         public void Load()
@@ -103,7 +102,7 @@ namespace StorageLib.Storages
             LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } saved his state");
         }
 
-        public async void InitializeServices()
+        /*public async void InitializeServices()
         {
             var listener = new TcpListener(masterEndPoint);
             listener.Start();
@@ -126,29 +125,6 @@ namespace StorageLib.Storages
                     slavesEndPoints.Add((IPEndPoint)client.Client.RemoteEndPoint);
                 }
             }
-        }
-
-        protected virtual async void NotifyServicesAboutDataUpdate(NetworkData data)
-        {
-            foreach (var slave in slavesEndPoints)
-            {
-                /*using (var host = new NetworkClient(tcpClient))
-                {
-                    LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } try to notify slave with port { slave.Port }");
-                    host.WriteAsync(data);
-                    LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } notify slave with port { slave.Port }");
-                }*/
-                using (var tcpClient = new TcpClient())
-                {
-                    LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } try to connect to slave with port { slave.Port }");
-                    await tcpClient.ConnectAsync(slave.Address, slave.Port);
-                    LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } connected to slave with port { slave.Port }");
-
-                    LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } try to notify slave with port { slave.Port }");
-                    await tcpClient.WriteAsync(data);
-                    LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } notify slave with port { slave.Port }");
-                }
-            }
-        }
+        }*/
     }
 }

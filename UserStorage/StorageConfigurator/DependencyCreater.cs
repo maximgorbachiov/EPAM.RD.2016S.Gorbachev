@@ -1,27 +1,39 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
+using StorageInterfaces.Entities;
+using StorageInterfaces.IFactories;
 
 namespace StorageConfigurator
 {
-    public static class DependencyCreater
+    [Serializable]
+    public class DependencyCreater : IFactory
     {
-        public static T CreateDependency<T>(string typeName)
+        private readonly Dictionary<Type, TypeEntity> dependencies; 
+
+        public DependencyCreater(Dictionary<Type, TypeEntity> dependencies)
+        {
+            this.dependencies = dependencies;
+        }
+
+        /*public T CreateDependency<T>()
         {
             var type = Type.GetType(typeName);
             if (type?.GetInterface(typeof(T).Name) == null || type.GetConstructor(new Type[] { }) == null)
                 throw new ConfigurationErrorsException("Unable to create.");
             return (T)Activator.CreateInstance(type);
-        }
+        }*/
 
-        public static T CreateDependency<T>(string typeName, params object[] constructorParams)
+        public T CreateDependency<T>()
         {
-            var type = Type.GetType(typeName);
+            var dependency = dependencies[typeof(T)];
+            var type = Type.GetType(dependency.Type);
 
-            if (type?.GetInterface(typeof(T).Name) == null || type.GetConstructor(constructorParams.Select(t => t.GetType()).ToArray()) == null)
-                throw new ConfigurationErrorsException("Unable to create repository.");
+            if (type?.GetInterface(typeof(T).Name) == null || type.GetConstructor(dependency.Parameters.Select(t => t.GetType()).ToArray()) == null)
+                throw new ConfigurationErrorsException($"Unable to create { typeof(T).FullName }.");
 
-            return (T)Activator.CreateInstance(type, constructorParams);
+            return (T)Activator.CreateInstance(type, dependency.Parameters);
         }
     }
 }

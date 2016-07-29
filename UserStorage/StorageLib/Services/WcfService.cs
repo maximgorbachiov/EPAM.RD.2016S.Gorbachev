@@ -1,16 +1,22 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using StorageInterfaces.CommunicationEntities.WcfEntities;
 using StorageInterfaces.Entities;
 using StorageInterfaces.IServices;
+using StorageInterfaces.IWcfServices;
 using StorageInterfaces.Mappers;
 
 namespace StorageLib.Services
 {
-    public class WcfService : IServiceContract, IInitializeServiceContract
+    [Serializable]
+    public class WcfService : IServiceContract
     {
-        private IService service;
+        private readonly IService service;
 
-        public WcfService() { }
+        public WcfService(IService service)
+        {
+            this.service = service;
+        }
 
         public int AddUser(UserDataContract userData)
         {
@@ -25,11 +31,6 @@ namespace StorageLib.Services
         public List<int> SearchBy(IComparer<User> comparer, UserDataContract searchingUser)
         {
             return service.SearchBy(comparer, searchingUser.ToUser());
-        }
-
-        public void Initialize(IService service)
-        {
-            this.service = service;
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace StorageInterfaces.IServices
+﻿using StorageInterfaces.IServices;
+
+namespace StorageInterfaces.IWcfServices
 {
     public interface IInitializeServiceContract
     {

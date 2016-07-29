@@ -3,8 +3,7 @@ using System.ServiceModel;
 using StorageInterfaces.CommunicationEntities.WcfEntities;
 using StorageInterfaces.Entities;
 
-
-namespace StorageInterfaces.IServices
+namespace StorageInterfaces.IWcfServices
 {
     [ServiceContract]
     public interface IServiceContract

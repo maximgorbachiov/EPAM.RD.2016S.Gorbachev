@@ -12,5 +12,11 @@ namespace StorageConfigurator.ConfigSection
 
         [ConfigurationProperty("Validator")]
         public TypeInfoElement Validator => (TypeInfoElement)base["Validator"];
+
+        [ConfigurationProperty("NetworkNotificator")]
+        public TypeInfoElement NetworkNotificator => (TypeInfoElement)base["NetworkNotificator"];
+
+        [ConfigurationProperty("NetworkUpdater")]
+        public TypeInfoElement NetworkUpdater => (TypeInfoElement)base["NetworkUpdater"];
     }
 }
