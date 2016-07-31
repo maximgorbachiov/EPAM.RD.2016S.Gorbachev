@@ -55,9 +55,9 @@ namespace StorageLib.Storages
 
         protected virtual void AddUserUpdate(object sender, AddEventArg e)
         {
-            if (e.user != null)
+            if (e.User != null)
             {
-                users.Add(e.user);
+                users.Add(e.User);
                 LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } is added user №{ users.Count }");
             }
         }
@@ -70,6 +70,11 @@ namespace StorageLib.Storages
                 users.Remove(user);
                 LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } is deleted user { user.Id }");
             }
+        }
+
+        public void UpdateByMasterCommand()
+        {
+            networkUpdater.UpdateByCommand();
         }
 
         /*public async void NotifyMasterAboutSlaveCreate()
@@ -85,9 +90,5 @@ namespace StorageLib.Storages
                 }
             }
         }*/
-        public void UpdateByMasterCommand()
-        {
-            networkUpdater.UpdateByCommand();
-        }
     }
 }

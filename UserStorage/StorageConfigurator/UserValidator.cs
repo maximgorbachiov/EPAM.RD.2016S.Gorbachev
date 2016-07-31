@@ -1,6 +1,6 @@
-﻿using StorageInterfaces.Entities;
+﻿using System;
+using StorageInterfaces.Entities;
 using StorageInterfaces.IValidators;
-using System;
 
 namespace StorageConfigurator
 {
@@ -9,7 +9,7 @@ namespace StorageConfigurator
     {
         public bool Validate(User user)
         {
-            return (user.Gender == Gender.Man || user.Gender == Gender.Woman);
+            return user.Gender == Gender.Man || user.Gender == Gender.Woman;
         }
     }
 }

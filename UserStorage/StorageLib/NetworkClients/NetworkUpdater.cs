@@ -6,10 +6,12 @@ using StorageInterfaces.EventArgs;
 using StorageInterfaces.INetworkConnections;
 using StorageLib.Services;
 using Storage.NetworkClients;
+using StorageInterfaces.ISerializers;
+using StorageLib.Serializers;
 
 namespace StorageLib.NetworkClients
 {
-    public class NetworkUpdater : INetworkUpdater
+    public class NetworkUpdater : INetworkUpdater, IBroadcastReceiver
     {
         private readonly IPEndPoint endPoint;
 
@@ -59,7 +61,7 @@ namespace StorageLib.NetworkClients
                         switch (data.Command)
                         {
                             case ServiceCommands.ADD_USER:
-                                OnAdd(this, new AddEventArg { user = data.User });
+                                OnAdd(this, new AddEventArg { User = data.User });
                                 break;
                             case ServiceCommands.DELETE_USER:
                                 OnDelete(this, new DeleteEventArg { Id = data.User.Id });
@@ -76,6 +78,37 @@ namespace StorageLib.NetworkClients
             {
                 LogService.Service.TraceInfo(nREx.Message);
             }
+        }
+
+        public void UdpReceive(int port)
+        {
+            /*byte[] dataFromMaster = new byte[10000];
+            byte[] dataFromSlave;
+            ISerializer<MasterConnectionData> masterSerializer = new BsonSerializer<MasterConnectionData>();
+            UdpClient udpClient = new UdpClient(serverUdpPort);
+
+            var receivedInfo = await udpClient.ReceiveAsync();
+
+            IPEndPoint remoteIpEndPoint = receivedInfo.RemoteEndPoint;
+
+            udpClient.Close();
+            var masterInfo = masterSerializer.Deserialize(receivedInfo.Buffer);
+
+            IPAddress ipAddr = IPAddress.Parse(ServerInfo.IP);
+            IPEndPoint ipEndPoint = new IPEndPoint(ipAddr, ServerInfo.Port);
+            TcpClient client = new TcpClient();
+            client.Connect(ipEndPoint);
+            NetworkStream stream = client.GetStream();
+            byte[] data = userConnectionDataSerializer.SerializeMessage(userData);
+            stream.Write(data, 0, data.Length);
+            int length = stream.Read(userDataFromServer, 0, userDataFromServer.Length);
+            newUserDataFromServer = new byte[length];
+            for (int i = 0; i < length; i++)
+            {
+                newUserDataFromServer[i] = userDataFromServer[i];
+            }
+            User = (UsersConnectionData)userConnectionDataSerializer.DeserializeMessage(newUserDataFromServer);
+            client.Close();*/
         }
     }
 }

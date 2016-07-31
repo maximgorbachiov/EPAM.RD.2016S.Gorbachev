@@ -8,13 +8,14 @@ namespace StorageInterfaces.CommunicationEntities
     [JsonObject]
     public class NetworkData
     {
-        public User User { get; private set; }
-        public ServiceCommands Command { get; private set; }
-
         public NetworkData(User user, ServiceCommands command)
         {
             User = user;
             Command = command;
         }
+
+        public User User { get; private set; }
+
+        public ServiceCommands Command { get; private set; }
     }
 }

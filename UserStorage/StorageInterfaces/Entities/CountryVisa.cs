@@ -6,20 +6,20 @@ namespace StorageInterfaces.Entities
     [DataContract]
     public struct CountryVisa
     {
-        [DataMember]
-        public string country;
-
-        [DataMember]
-        public DateTime start;
-
-        [DataMember]
-        public DateTime end;
-
         public CountryVisa(string country, DateTime start, DateTime end)
         {
-            this.country = country;
-            this.start = start;
-            this.end = end;
+            Country = country;
+            Start = start;
+            End = end;
         }
+
+        [DataMember]
+        public string Country { get; set; }
+
+        [DataMember]
+        public DateTime Start { get; set; }
+
+        [DataMember]
+        public DateTime End { get; set; }
     }
 }

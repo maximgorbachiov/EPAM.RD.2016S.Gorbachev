@@ -31,7 +31,9 @@ namespace StorageConfigurator
             var type = Type.GetType(dependency.Type);
 
             if (type?.GetInterface(typeof(T).Name) == null || type.GetConstructor(dependency.Parameters.Select(t => t.GetType()).ToArray()) == null)
+            {
                 throw new ConfigurationErrorsException($"Unable to create { typeof(T).FullName }.");
+            }
 
             return (T)Activator.CreateInstance(type, dependency.Parameters);
         }

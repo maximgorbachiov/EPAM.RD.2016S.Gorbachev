@@ -1,19 +1,18 @@
-﻿using StorageConfigurator.ConfigSection;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
-using StorageInterfaces.IRepositories;
-using StorageInterfaces.IGenerators;
-using StorageInterfaces.IValidators;
 using System.Globalization;
 using System.Net;
 using System.Reflection;
+using StorageConfigurator.ConfigSection;
 using StorageInterfaces.CommunicationEntities;
 using StorageInterfaces.Entities;
+using StorageInterfaces.IGenerators;
 using StorageInterfaces.INetworkConnections;
+using StorageInterfaces.IRepositories;
 using StorageInterfaces.IServices;
+using StorageInterfaces.IValidators;
 using StorageInterfaces.IWcfServices;
-using StorageLib.Storages;
 using WcfLibrary;
 
 namespace StorageConfigurator
@@ -22,20 +21,14 @@ namespace StorageConfigurator
     {
         private const string FILENAME = "fileName";
 
-        private IService masterService;
-        private readonly List<SlaveService> services = new List<SlaveService>();
-        private AppDomain masterDomain;
-        private readonly List<AppDomain> slaveDomains = new List<AppDomain>();
-
-        public IService MasterService => masterService;
-        public List<SlaveService> SlaveServices => services; 
+        private readonly List<IWcfHost> slaveHosts = new List<IWcfHost>();
+        private IWcfHost masterHost;
 
         public void Load()
         {
             var servicesSection = (ServicesSection)ConfigurationManager.GetSection("ServicesSection");
             var infoSection = (ServicesInfoSection)ConfigurationManager.GetSection("ServicesInfoSection");
-            IPEndPoint masterEndPoint = null;
-            var slavesEndPoints = new List<IPEndPoint>();
+            ServicesIp servicesIp;
             var slaves = new List<ServiceElement>();
             ServiceElement master = null;
 
@@ -43,6 +36,7 @@ namespace StorageConfigurator
             {
                 throw new NullReferenceException("Unable to read services section from config.");
             }
+
             var servicesInfo = servicesSection.Services;
 
             if (infoSection == null)
@@ -50,78 +44,112 @@ namespace StorageConfigurator
                 throw new NullReferenceException("Unable to read service info section from config.");
             }
 
-            for (int i = 0; i < servicesInfo.Count; i++)
-            {
-                if (servicesInfo[i].IsMaster)
-                {
-                    masterEndPoint = new IPEndPoint(IPAddress.Parse(servicesInfo[i].IpAddress), servicesInfo[i].Port);
-                    master = servicesInfo[i];
-                }
-                else
-                {
-                    slaves.Add(servicesInfo[i]);
-                }
-            }
+            servicesIp = GetIpAddresses(servicesInfo, ref master, ref slaves);
+            int j = 0;
 
             foreach (var slave in slaves)
             {
+                j++;
                 var slaveEndPoint = new IPEndPoint(IPAddress.Parse(slave.IpAddress), slave.Port);
-                slavesEndPoints.Add(slaveEndPoint);
 
-                IService slaveService = CreateSlaveService(slave.ServiceType, slave.HostAddress, infoSection, slaveEndPoint);
-                ((IListener)slaveService).UpdateByMasterCommand();
-                services.Add((SlaveService)slaveService);
+                servicesIp.SlavesEndPoints.Add(slaveEndPoint);
+
+                var slavesParams = new Dictionary<Type, TypeEntity>
+                {
+                    { typeof(IRepository), new TypeEntity(infoSection.Repository.Type, FILENAME) },
+                    { typeof(INetworkUpdater), new TypeEntity(infoSection.NetworkUpdater.Type, slaveEndPoint) }
+                };
+
+                IWcfHost slaveHost = CreateServiceHost($"Slave{j}", slave.ServiceType, slave.HostAddress, infoSection, slavesParams);
+                slaveHosts.Add(slaveHost);
+                slaveHost.OpenWcfService();
             }
 
-            var data = new MasterConnectionData { MasterEndPoint = masterEndPoint, SlavesEndPoints = slavesEndPoints };
-            CreateMasterService(master?.ServiceType, master?.HostAddress, infoSection, data);
-            ((ILoader)masterService).Load();
+            var masterParams = new Dictionary<Type, TypeEntity>
+            {
+                { typeof(IRepository), new TypeEntity(infoSection.Repository.Type, FILENAME) },
+                { typeof(IGenerator), new TypeEntity(infoSection.Generator.Type) },
+                { typeof(IValidator), new TypeEntity(infoSection.Validator.Type) },
+                { typeof(INetworkNotificator), new TypeEntity(infoSection.NetworkNotificator.Type, servicesIp) }
+            };
+
+            masterHost = CreateServiceHost("Master", master?.ServiceType, master?.HostAddress, infoSection, masterParams);
+            masterHost.OpenWcfService();
         }
 
         public void Save()
         {
-            ((ILoader)masterService).Save();
+            masterHost.CloseWcfService();
+            
+            foreach(var host in slaveHosts)
+            {
+                host.CloseWcfService();
+            }
         }
 
-        private void CreateMasterService(string masterType, string serviceAddress, ServicesInfoSection info, MasterConnectionData data)
+        private IWcfHost CreateServiceHost(string hostName, string serviceType, string address, ServicesInfoSection info, Dictionary<Type, TypeEntity> parameters)
         {
-            var masterParams = new Dictionary<Type, TypeEntity>
-            {
-                { typeof (IRepository), new TypeEntity(info.Repository.Type, FILENAME) },
-                { typeof (IGenerator), new TypeEntity(info.Generator.Type) },
-                { typeof (IValidator), new TypeEntity(info.Validator.Type) },
-                { typeof (INetworkNotificator), new TypeEntity(info.NetworkNotificator.Type, data) }
-            };
+            var factory = new DependencyCreater(parameters);
 
-            var factory = new DependencyCreater(masterParams);
+            var domain = AppDomain.CreateDomain(hostName);
 
-            masterDomain = AppDomain.CreateDomain("Master");
-            var host = (IWcfHost)masterDomain.CreateInstanceAndUnwrap(typeof(WcfHost).Assembly.FullName, typeof(WcfHost).FullName);
-            var type = Type.GetType(masterType);
+            var type = Type.GetType(serviceType);
 
             if (type == null)
             {
-                throw new ConfigurationErrorsException($"Invalid type of { masterDomain.FriendlyName } domain");
+                throw new ConfigurationErrorsException($"Invalid type of { domain.FriendlyName } domain");
             }
 
-            masterService = (IService)masterDomain.CreateInstanceAndUnwrap(type.Assembly.FullName, type.FullName, true, BindingFlags.CreateInstance, null, 
-                new object[] { factory }, CultureInfo.InvariantCulture, null);
+            var service = (IService)domain.CreateInstanceAndUnwrap(
+                type.Assembly.FullName,
+                type.FullName,
+                true,
+                BindingFlags.CreateInstance,
+                null, 
+                new object[] { factory },
+                CultureInfo.InvariantCulture,
+                null);
 
-            host.CreateWcfService(masterService, serviceAddress);
+            var host = (IWcfHost)domain.CreateInstanceAndUnwrap(
+                typeof(WcfHost).Assembly.FullName,
+                typeof(WcfHost).FullName,
+                true,
+                BindingFlags.CreateInstance,
+                null,
+                new object[] { service, address },
+                CultureInfo.InvariantCulture,
+                null);
+
+            return host;
         }
 
-        private IService CreateSlaveService(string slaveType, string address, ServicesInfoSection info, IPEndPoint slaveEndPoint)
+        private ServicesIp GetIpAddresses(ServicesCollection collection, ref ServiceElement masterElement, ref List<ServiceElement> slavesElements)
         {
-            var slavesParams = new Dictionary<Type, TypeEntity>
-            {
-                { typeof (IRepository), new TypeEntity(info.Repository.Type, FILENAME) },
-                { typeof (INetworkUpdater), new TypeEntity(info.NetworkUpdater.Type, slaveEndPoint) }
-            };
-            var factory = new DependencyCreater(slavesParams);
+            IPEndPoint masterEndPoint = null;
+            List<IPEndPoint> slaveEndPoints = new List<IPEndPoint>();
 
-            var slaveDomain = AppDomain.CreateDomain($"Slave №{ slaveDomains.Count }");
-            slaveDomains.Add(slaveDomain);
-            var host = (IWcfHost)slaveDomain.CreateInstanceAndUnwrap(typeof(WcfHost).Assembly.FullName, typeof(WcfHost).FullName);
+            for (int i = 0; i < collection.Count; i++)
+            {
+                if (collection[i].IsMaster)
+                {
+                    masterEndPoint = new IPEndPoint(IPAddress.Parse(collection[i].IpAddress), collection[i].Port);
+                    masterElement = collection[i];
+                }
+                else
+                {
+                    slavesElements.Add(collection[i]);
+                }
+            }
+
+            return new ServicesIp { MasterEndPoint = masterEndPoint, SlavesEndPoints = slaveEndPoints };
+        }
+
+        /*private IWcfHost CreateSlaveHost(string slaveType, string address, ServicesInfoSection info, Dictionary<Type, TypeEntity> parameters)
+        {
+            var factory = new DependencyCreater(parameters);
+
+            var slaveDomain = AppDomain.CreateDomain($"Slave №{ slaveHosts.Count }");
+
             var type = Type.GetType(slaveType);
 
             if (type == null)
@@ -129,12 +157,27 @@ namespace StorageConfigurator
                 throw new ConfigurationErrorsException($"Invalid type of { slaveDomain.FriendlyName } domain");
             }
 
-            var slave = (IService)slaveDomain.CreateInstanceAndUnwrap(type.Assembly.FullName, type.FullName, true, BindingFlags.CreateInstance, null,
-                new object[] { factory }, CultureInfo.InvariantCulture, null);
+            var slave = (IService)slaveDomain.CreateInstanceAndUnwrap(
+                type.Assembly.FullName,
+                type.FullName,
+                true,
+                BindingFlags.CreateInstance,
+                null,
+                new object[] { factory },
+                CultureInfo.InvariantCulture,
+                null);
 
-            host.CreateWcfService(slave, address);
+            var host = (IWcfHost)slaveDomain.CreateInstanceAndUnwrap(
+                typeof(WcfHost).Assembly.FullName,
+                typeof(WcfHost).FullName,
+                true,
+                BindingFlags.CreateInstance,
+                null,
+                new object[] { slave, address },
+                CultureInfo.InvariantCulture,
+                null);
 
-            return slave;
-        }
+            return host;
+        }*/
     }
 }

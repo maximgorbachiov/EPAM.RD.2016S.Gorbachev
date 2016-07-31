@@ -3,6 +3,7 @@
     public interface ILoader
     {
         void Save();
+
         void Load();
     }
 }

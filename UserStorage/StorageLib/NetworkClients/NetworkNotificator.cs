@@ -9,12 +9,12 @@ using Storage.NetworkClients;
 
 namespace StorageLib.NetworkClients
 {
-    public class NetworkNotificator : INetworkNotificator
+    public class NetworkNotificator : INetworkNotificator, IBroadcastNotificator
     {
         private IPEndPoint endPoint;
         private readonly List<IPEndPoint> slavesEndPoints; 
 
-        public NetworkNotificator(MasterConnectionData masterConnectionData)
+        public NetworkNotificator(ServicesIp masterConnectionData)
         {
             endPoint = masterConnectionData.MasterEndPoint;
             slavesEndPoints = masterConnectionData.SlavesEndPoints;
@@ -53,6 +53,22 @@ namespace StorageLib.NetworkClients
                     LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } notify slave with port { slave.Port }");
                 }
             }
+        }
+
+        public void UdpSend()
+        {
+            /*UdpClient udpClient = new UdpClient();
+            int i = 0;
+            Console.WriteLine(serverInfo.IP);
+            Console.WriteLine(serverInfo.Port);
+            byte[] message = serverConnectionDataSerializer.SerializeMessage(serverInfo);
+            while (true)
+            {
+                udpClient.Send(message, message.Length, new IPEndPoint(IPAddress.Broadcast, port));
+                Console.WriteLine(i);
+                Thread.Sleep(1000);
+                i++;
+            }*/
         }
     }
 }

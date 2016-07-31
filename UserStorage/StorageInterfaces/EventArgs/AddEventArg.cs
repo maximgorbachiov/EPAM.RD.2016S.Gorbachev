@@ -4,6 +4,6 @@ namespace StorageInterfaces.EventArgs
 {
     public class AddEventArg : System.EventArgs
     {
-        public User user;
+        public User User { get; set; }
     }
 }

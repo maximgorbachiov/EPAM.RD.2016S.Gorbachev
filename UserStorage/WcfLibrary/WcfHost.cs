@@ -5,6 +5,8 @@ using WcfLibrary.WcfServices;
 using System.ServiceModel.Description;
 using StorageInterfaces.IWcfServices;
 using StorageLib.Services;
+using WcfLibrary.Interfaces;
+using StorageInterfaces.INetworkConnections;
 
 namespace WcfLibrary
 {
@@ -12,7 +14,7 @@ namespace WcfLibrary
     {
         private ServiceHost host;
 
-        public async void CreateWcfService(IService service, string address)
+        public WcfHost(IService service, string address)
         {
             var uri = new Uri(address);
             var wcfService = new WcfService(service);
@@ -24,7 +26,14 @@ namespace WcfLibrary
                 HttpGetEnabled = true,
                 MetadataExporter = { PolicyVersion = PolicyVersion.Policy15 }
             };
+
             host.Description.Behaviors.Add(smb);
+        }
+
+        public void OpenWcfService()
+        {
+            (host.SingletonInstance as IWcfLoader).Load();
+            (host.SingletonInstance as INetworkUpdater)?.UpdateByCommand();
             host.Open();
             LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } wcf service was opened");
         }
@@ -32,6 +41,7 @@ namespace WcfLibrary
         public void CloseWcfService()
         {
             host.Close();
+            (host.SingletonInstance as IWcfLoader)?.Save();
             ((IDisposable)host).Dispose();
         }
     }

@@ -8,13 +8,14 @@ namespace StorageInterfaces.Entities
         private readonly string type;
         private readonly object[] parameters;
 
-        public string Type => type;
-        public object[] Parameters => parameters;
-
         public TypeEntity(string type, params object[] parameters)
         {
             this.type = type;
-            this.parameters = parameters ?? new object[]{ };
+            this.parameters = parameters ?? new object[] { };
         }
+
+        public string Type => type;
+
+        public object[] Parameters => parameters;
     }
 }

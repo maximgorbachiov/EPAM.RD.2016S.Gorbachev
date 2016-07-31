@@ -20,6 +20,20 @@ namespace StorageLib.Serializers
             return result;
         }
 
+        public T Deserialize(byte[] obj)
+        {
+            T result;
+
+            var stream = new MemoryStream(obj);
+            using (BsonReader reader = new BsonReader(stream))
+            {
+                JsonSerializer serializer = new JsonSerializer();
+                result = serializer.Deserialize<T>(reader);
+            }
+
+            return result;
+        }
+
         public byte[] Serialize(T obj)
         {
             MemoryStream stream = new MemoryStream();

@@ -88,7 +88,7 @@ namespace StorageLib.Storages
             return usersId;
         }
 
-        public void Load()
+        void ILoader.Load()
         {
             ServiceState lastState = repository.Load();
             users = lastState.Users ?? new List<User>();
@@ -96,7 +96,7 @@ namespace StorageLib.Storages
             LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } loaded");
         }
 
-        public void Save()
+        void ILoader.Save()
         {
             repository.Save(new ServiceState { Users = users, LastId = generator.Current });
             LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } saved his state");

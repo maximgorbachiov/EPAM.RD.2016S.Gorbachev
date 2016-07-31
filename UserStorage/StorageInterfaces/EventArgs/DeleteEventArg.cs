@@ -2,6 +2,6 @@
 {
     public class DeleteEventArg : System.EventArgs
     {
-        public int Id;
+        public int Id { get; set; }
     }
 }

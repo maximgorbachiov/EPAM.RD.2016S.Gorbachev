@@ -10,6 +10,11 @@ namespace FibonachyGenerator.Generators
     {
         private readonly IEnumerator<int> iterator;
 
+        public IdGenerator()
+        {
+            iterator = new FibonachyIterator();
+        }
+
         public int Current
         {
             get
@@ -17,11 +22,6 @@ namespace FibonachyGenerator.Generators
                 iterator.MoveNext();
                 return iterator.Current;
             }
-        }
-
-        public IdGenerator()
-        {
-            iterator = new FibonachyIterator();
         }
 
         public void SetGeneratorState(int value)
