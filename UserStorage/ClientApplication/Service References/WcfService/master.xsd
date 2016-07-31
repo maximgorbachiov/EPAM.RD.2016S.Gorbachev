@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:tns="http://schemas.datacontract.org/2004/07/StorageInterfaces.CommunicationEntities.WcfEntities" elementFormDefault="qualified" targetNamespace="http://schemas.datacontract.org/2004/07/StorageInterfaces.CommunicationEntities.WcfEntities" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:import schemaLocation="http://localhost:8080/master?xsd=xsd3" namespace="http://schemas.datacontract.org/2004/07/StorageInterfaces.Entities" />
+  <xs:complexType name="UserDataContract">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="DateOfBirth" type="xs:dateTime" />
+      <xs:element xmlns:q1="http://schemas.datacontract.org/2004/07/StorageInterfaces.Entities" minOccurs="0" name="Gender" type="q1:Gender" />
+      <xs:element minOccurs="0" name="Id" type="xs:int" />
+      <xs:element minOccurs="0" name="Name" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="SecondName" nillable="true" type="xs:string" />
+      <xs:element xmlns:q2="http://schemas.datacontract.org/2004/07/StorageInterfaces.Entities" minOccurs="0" name="Visas" nillable="true" type="q2:ArrayOfCountryVisa" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="UserDataContract" nillable="true" type="tns:UserDataContract" />
+</xs:schema>

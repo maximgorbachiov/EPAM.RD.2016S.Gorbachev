@@ -71,6 +71,7 @@
     <Compile Include="IValidators\IValidator.cs" />
     <Compile Include="IWcfServices\IInitializeServiceContract.cs" />
     <Compile Include="IWcfServices\IServiceContract.cs" />
+    <Compile Include="IWcfServices\IWcfHost.cs" />
     <Compile Include="Mappers\UserMapper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

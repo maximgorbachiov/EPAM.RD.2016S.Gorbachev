@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using StorageInterfaces.ISerializers;
 using StorageLib.Serializers;
 using StorageLib.Services;
+using System.IO;
 
 namespace Storage.NetworkClients
 {
@@ -13,62 +14,34 @@ namespace Storage.NetworkClients
         public static async Task<T> ReadAsync<T>(this TcpClient client, int bufferSize)
         {
             ISerializer<T> serializer = new BsonSerializer<T>();
-            byte[] result;
+            byte[] data = new byte[bufferSize];
+            T message;
+            var stream = client.GetStream();
 
-            try
+            using (var memStream = new MemoryStream())
             {
-                var stream = client.GetStream();
-                List<byte[]> list = new List<byte[]>();
-                int resultLength = 0, i = 0;
-
-                list.Add(new byte[bufferSize]);
-                var countOfReadBytes = await stream.ReadAsync(list[i], 0, bufferSize);
-                resultLength += countOfReadBytes;
-
-                while (countOfReadBytes == bufferSize)
+                int count;
+                do
                 {
-                    list.Add(new byte[bufferSize]);
-                    countOfReadBytes = await stream.ReadAsync(list[i], 0, bufferSize);
-                    resultLength += countOfReadBytes;
-                    i++;
+                    count = await stream.ReadAsync(data, 0, data.Length);
+                    memStream.Write(data, 0, count);
                 }
+                while (count == bufferSize);
 
-                result = new byte[resultLength];
+                LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } read info");
+                memStream.Position = 0;
 
-                for (int j = 0; j < list.Count; j++)
+                try
                 {
-                    if (i != j)
-                    {
-                        int tempResultLength = result.Length;
-                        list[j].CopyTo(result, tempResultLength);
-                    }
-                    else
-                    {
-                        int temp = i * bufferSize;
-                        for (int k = 0; k < resultLength - temp; k++)
-                        {
-                            result[k + temp] = list[j][k];
-                        }
-                    }
+                    message = serializer.Deserialize(memStream);
+                }
+                catch
+                {
+                    throw new InvalidDataException("Unable to deserialize.");
                 }
             }
-            catch (ObjectDisposedException oDEx)
-            {
-                LogService.Service.TraceInfo(oDEx.Message);
-                LogService.Service.TraceInfo(oDEx.InnerException.Message);
-                LogService.Service.TraceInfo(oDEx.ObjectName);
-                LogService.Service.TraceInfo(oDEx.StackTrace);
-                throw;
-            }
-            catch (NullReferenceException nREx)
-            {
-                LogService.Service.TraceInfo(nREx.Message);
-                LogService.Service.TraceInfo(nREx.StackTrace);
-                throw;
-            }
 
-            LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } read info");
-            return serializer.Deserialize(result);
+            return message;
         }
 
         public static async Task WriteAsync<T>(this TcpClient client, T data)
@@ -84,16 +57,10 @@ namespace Storage.NetworkClients
             catch (ObjectDisposedException oDEx)
             {
                 LogService.Service.TraceInfo(oDEx.Message);
-                LogService.Service.TraceInfo(oDEx.InnerException.Message);
-                LogService.Service.TraceInfo(oDEx.ObjectName);
-                LogService.Service.TraceInfo(oDEx.StackTrace);
-                throw;
             }
             catch (NullReferenceException nREx)
             {
                 LogService.Service.TraceInfo(nREx.Message);
-                LogService.Service.TraceInfo(nREx.StackTrace);
-                throw;
             }
         }
     }

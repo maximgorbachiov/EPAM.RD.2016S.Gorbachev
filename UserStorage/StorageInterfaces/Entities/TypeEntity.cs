@@ -1,5 +1,8 @@
-﻿namespace StorageInterfaces.Entities
+﻿using System;
+
+namespace StorageInterfaces.Entities
 {
+    [Serializable]
     public class TypeEntity
     {
         private readonly string type;

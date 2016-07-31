@@ -7,11 +7,10 @@ namespace StorageLib.Serializers
 {
     public class BsonSerializer<T> : ISerializer<T>
     {
-        public T Deserialize(byte[] obj)
+        public T Deserialize(MemoryStream stream)
         {
             T result;
 
-            MemoryStream stream = new MemoryStream(obj);
             using (BsonReader reader = new BsonReader(stream))
             {
                 JsonSerializer serializer = new JsonSerializer();

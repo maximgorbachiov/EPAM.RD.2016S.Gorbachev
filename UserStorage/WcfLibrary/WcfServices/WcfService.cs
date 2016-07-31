@@ -1,15 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using StorageInterfaces.CommunicationEntities.WcfEntities;
+﻿using StorageInterfaces.CommunicationEntities.WcfEntities;
 using StorageInterfaces.Entities;
 using StorageInterfaces.IServices;
 using StorageInterfaces.IWcfServices;
 using StorageInterfaces.Mappers;
+using System;
+using System.Collections.Generic;
+using System.ServiceModel;
 
-namespace StorageLib.Services
+namespace WcfLibrary.WcfServices
 {
-    [Serializable]
-    public class WcfService : IServiceContract
+    [ServiceBehavior(InstanceContextMode = InstanceContextMode.Single)]
+    public class WcfService : MarshalByRefObject, IServiceContract
     {
         private readonly IService service;
 
@@ -28,9 +29,9 @@ namespace StorageLib.Services
             service.DeleteUser(id);
         }
 
-        public List<int> SearchBy(IComparer<User> comparer, UserDataContract searchingUser)
+        public List<int> SearchBy(/*IComparer<User> comparer, */UserDataContract searchingUser)
         {
-            return service.SearchBy(comparer, searchingUser.ToUser());
+            return null;//service.SearchBy(comparer, searchingUser.ToUser());
         }
     }
 }

@@ -15,6 +15,6 @@ namespace StorageInterfaces.IWcfServices
         void DeleteUser(int id);
 
         [OperationContract]
-        List<int> SearchBy(IComparer<User> comparer, UserDataContract searchingUser);
+        List<int> SearchBy(/*IComparer<User> comparer, */UserDataContract searchingUser);
     }
 }

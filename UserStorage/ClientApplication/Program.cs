@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ClientApplication.WcfService;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,6 +11,7 @@ namespace ClientApplication
     {
         static void Main(string[] args)
         {
+            //IServiceContract service = 
         }
     }
 }

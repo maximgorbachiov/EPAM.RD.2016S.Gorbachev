@@ -50,7 +50,7 @@ namespace StorageLib.Storages
 
             user.Id = generator.Current;
             users.Add(user);
-            LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } add user №{ user.Id }");
+            LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } add user №{ users.Count }");
             networkNotificator.NotifyServicesAboutDataUpdate(new NetworkData(user, ServiceCommands.ADD_USER));
             return user.Id;
         }

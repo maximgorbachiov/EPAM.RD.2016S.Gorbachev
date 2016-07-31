@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UserStorageConsole", "UserStorageConsole\UserStorageConsole.csproj", "{926A6377-3D49-4E8D-AF77-E7AA3602DE4F}"
 EndProject
@@ -14,6 +14,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StorageInterfaces", "StorageInterfaces\StorageInterfaces.csproj", "{A0DD8A3D-C80F-4064-8832-8120300E8DF7}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClientApplication", "ClientApplication\ClientApplication.csproj", "{BAEC82DF-86A9-41FA-BEA1-B257FDAC7CC7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WcfLibrary", "WcfLibrary\WcfLibrary.csproj", "{F2CBA655-5D87-43DF-8BFD-5ED48F668EA2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,6 +47,10 @@ Global
 		{BAEC82DF-86A9-41FA-BEA1-B257FDAC7CC7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BAEC82DF-86A9-41FA-BEA1-B257FDAC7CC7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BAEC82DF-86A9-41FA-BEA1-B257FDAC7CC7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F2CBA655-5D87-43DF-8BFD-5ED48F668EA2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F2CBA655-5D87-43DF-8BFD-5ED48F668EA2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F2CBA655-5D87-43DF-8BFD-5ED48F668EA2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F2CBA655-5D87-43DF-8BFD-5ED48F668EA2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

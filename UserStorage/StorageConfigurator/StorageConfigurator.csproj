@@ -68,6 +68,10 @@
       <Project>{01842dad-604f-4e1f-9dbd-3c1b6fddcd33}</Project>
       <Name>StorageLib</Name>
     </ProjectReference>
+    <ProjectReference Include="..\WcfLibrary\WcfLibrary.csproj">
+      <Project>{f2cba655-5d87-43df-8bfd-5ed48f668ea2}</Project>
+      <Name>WcfLibrary</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

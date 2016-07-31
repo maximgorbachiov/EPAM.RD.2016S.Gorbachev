@@ -8,15 +8,13 @@ using StorageInterfaces.IValidators;
 using System.Globalization;
 using System.Net;
 using System.Reflection;
-using System.ServiceModel;
-using System.ServiceModel.Description;
 using StorageInterfaces.CommunicationEntities;
 using StorageInterfaces.Entities;
 using StorageInterfaces.INetworkConnections;
 using StorageInterfaces.IServices;
 using StorageInterfaces.IWcfServices;
-using StorageLib.Services;
 using StorageLib.Storages;
+using WcfLibrary;
 
 namespace StorageConfigurator
 {
@@ -70,7 +68,7 @@ namespace StorageConfigurator
                 var slaveEndPoint = new IPEndPoint(IPAddress.Parse(slave.IpAddress), slave.Port);
                 slavesEndPoints.Add(slaveEndPoint);
 
-                IService slaveService = CreateSlaveService(slave.ServiceType, infoSection, slaveEndPoint);
+                IService slaveService = CreateSlaveService(slave.ServiceType, slave.HostAddress, infoSection, slaveEndPoint);
                 ((IListener)slaveService).UpdateByMasterCommand();
                 services.Add((SlaveService)slaveService);
             }
@@ -98,7 +96,7 @@ namespace StorageConfigurator
             var factory = new DependencyCreater(masterParams);
 
             masterDomain = AppDomain.CreateDomain("Master");
-
+            var host = (IWcfHost)masterDomain.CreateInstanceAndUnwrap(typeof(WcfHost).Assembly.FullName, typeof(WcfHost).FullName);
             var type = Type.GetType(masterType);
 
             if (type == null)
@@ -106,35 +104,13 @@ namespace StorageConfigurator
                 throw new ConfigurationErrorsException($"Invalid type of { masterDomain.FriendlyName } domain");
             }
 
-            var master = (IService)masterDomain.CreateInstanceAndUnwrap(type.Assembly.FullName, type.FullName, true, BindingFlags.CreateInstance, null, 
+            masterService = (IService)masterDomain.CreateInstanceAndUnwrap(type.Assembly.FullName, type.FullName, true, BindingFlags.CreateInstance, null, 
                 new object[] { factory }, CultureInfo.InvariantCulture, null);
 
-            var address = new Uri(serviceAddress);
-            var wcfService = new WcfService(master);
-
-            using (var host = (ServiceHost)masterDomain.CreateInstanceAndUnwrap(typeof(ServiceHost).Assembly.FullName, typeof(ServiceHost).FullName, true, BindingFlags.CreateInstance, null,
-                new object[] { wcfService, address }, CultureInfo.InvariantCulture, null))
-            {
-                // Enable metadata publishing.
-                var smb = new ServiceMetadataBehavior
-                {
-                    HttpGetEnabled = true,
-                    MetadataExporter = {PolicyVersion = PolicyVersion.Policy15}
-                };
-                host.Description.Behaviors.Add(smb);
-                ((IInitializeServiceContract)host.SingletonInstance).Initialize(master);
-                host.Open();
-
-                Console.WriteLine("The service is ready at {0}", address);
-                Console.WriteLine("Press <Enter> to stop the service.");
-                Console.ReadLine();
-
-                // Close the ServiceHost.
-                host.Close();
-            }
+            host.CreateWcfService(masterService, serviceAddress);
         }
 
-        private IService CreateSlaveService(string slaveType, ServicesInfoSection info, IPEndPoint slaveEndPoint)
+        private IService CreateSlaveService(string slaveType, string address, ServicesInfoSection info, IPEndPoint slaveEndPoint)
         {
             var slavesParams = new Dictionary<Type, TypeEntity>
             {
@@ -145,7 +121,7 @@ namespace StorageConfigurator
 
             var slaveDomain = AppDomain.CreateDomain($"Slave №{ slaveDomains.Count }");
             slaveDomains.Add(slaveDomain);
-
+            var host = (IWcfHost)slaveDomain.CreateInstanceAndUnwrap(typeof(WcfHost).Assembly.FullName, typeof(WcfHost).FullName);
             var type = Type.GetType(slaveType);
 
             if (type == null)
@@ -153,8 +129,12 @@ namespace StorageConfigurator
                 throw new ConfigurationErrorsException($"Invalid type of { slaveDomain.FriendlyName } domain");
             }
 
-            return (IService)slaveDomain.CreateInstanceAndUnwrap(type.Assembly.FullName, type.FullName, true, BindingFlags.CreateInstance, null,
+            var slave = (IService)slaveDomain.CreateInstanceAndUnwrap(type.Assembly.FullName, type.FullName, true, BindingFlags.CreateInstance, null,
                 new object[] { factory }, CultureInfo.InvariantCulture, null);
+
+            host.CreateWcfService(slave, address);
+
+            return slave;
         }
     }
 }

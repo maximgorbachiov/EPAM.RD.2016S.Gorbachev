@@ -15,14 +15,14 @@ namespace StorageLib.Storages
     {
         private readonly INetworkUpdater networkUpdater;
 
-        private readonly List<User> users = new List<User>();
+        private readonly List<User> users;
 
         public SlaveService(IFactory factory)
         {
             networkUpdater = factory.CreateDependency<INetworkUpdater>();
             networkUpdater.OnAdd += AddUserUpdate;
             networkUpdater.OnDelete += DeleteUserUpdate;
-            users = factory.CreateDependency<IRepository>().Load().Users;
+            users = factory.CreateDependency<IRepository>().Load().Users ?? new List<User>();
             LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } is created");
             LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } is load");
         }
@@ -58,6 +58,7 @@ namespace StorageLib.Storages
             if (e.user != null)
             {
                 users.Add(e.user);
+                LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } is added user №{ users.Count }");
             }
         }
 
@@ -67,6 +68,7 @@ namespace StorageLib.Storages
             if ((user = users.FirstOrDefault(u => u.Id == e.Id)) != null)
             {
                 users.Remove(user);
+                LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } is deleted user { user.Id }");
             }
         }
 

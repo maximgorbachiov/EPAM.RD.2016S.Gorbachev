@@ -5,8 +5,9 @@ using StorageInterfaces.CommunicationEntities;
 using StorageInterfaces.EventArgs;
 using StorageInterfaces.INetworkConnections;
 using StorageLib.Services;
+using Storage.NetworkClients;
 
-namespace Storage.NetworkClients
+namespace StorageLib.NetworkClients
 {
     public class NetworkUpdater : INetworkUpdater
     {
@@ -41,17 +42,16 @@ namespace Storage.NetworkClients
                         switch (data.Command)
                         {
                             case ServiceCommands.ADD_USER:
-                                AddUserUpdate(data.User);
-                                LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } is added user { data.User.Id }");
+                                OnAdd(this, new AddEventArg { user = data.User });
                                 break;
                             case ServiceCommands.DELETE_USER:
-                                DeleteUserUpdate(data.User.Id);
-                                LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } is deleted user { data.User.Id }");
+                                OnDelete(this, new DeleteEventArg { Id = data.User.Id });
                                 break;
                         }
                     }*/
                     using (var client = await listener.AcceptTcpClientAsync())
                     {
+                        var networkClient = new NetworkClient(client);
                         LogService.Service.TraceInfo($"{AppDomain.CurrentDomain.FriendlyName} accept client with port {((IPEndPoint)client.Client.RemoteEndPoint).Port}");
                         LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } try to read info from client with port {((IPEndPoint)client.Client.RemoteEndPoint).Port}");
                         var data = await client.ReadAsync<NetworkData>(1024);
@@ -60,11 +60,9 @@ namespace Storage.NetworkClients
                         {
                             case ServiceCommands.ADD_USER:
                                 OnAdd(this, new AddEventArg { user = data.User });
-                                LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } is added user { data.User.Id }");
                                 break;
                             case ServiceCommands.DELETE_USER:
                                 OnDelete(this, new DeleteEventArg { Id = data.User.Id });
-                                LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } is deleted user { data.User.Id }");
                                 break;
                         }
                     }

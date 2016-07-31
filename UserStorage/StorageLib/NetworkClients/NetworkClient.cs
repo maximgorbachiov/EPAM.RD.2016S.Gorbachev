@@ -1,29 +1,24 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 using StorageInterfaces.INetworkConnections;
 using StorageInterfaces.ISerializers;
 using StorageLib.Serializers;
 using StorageLib.Services;
+using System.IO;
 
-namespace Storage.NetworkClients
+namespace StorageLib.NetworkClients
 {
-    public class NetworkClient : INetworkIO, IDisposable
+    public class NetworkClient// : INetworkIO
     {
-        protected NetworkStream stream;
+        protected TcpClient client;
 
         public NetworkClient(TcpClient client)
         {
-            stream = client.GetStream();
+            this.client = client;
         }
 
-        public void Dispose()
-        {
-            stream.Dispose();
-        }
-
-        public async Task<T> ReadAsync<T>(int bufferSize)
+        /*public async Task<T> ReadAsync<T>(int bufferSize)
         {
             return await ReadFromStreamAsync<T>(bufferSize);
         }
@@ -43,9 +38,60 @@ namespace Storage.NetworkClients
             {
                 LogService.Service.TraceInfo(nREx.Message);
             }
+        }*/
+
+        /*protected virtual async Task<T> ReadFromStreamAsync<T>(int bufferSize)
+        {
+            ISerializer<T> serializer = new BsonSerializer<T>();
+            byte[] data = new byte[bufferSize];
+            T message;
+
+            using (var memStream = new MemoryStream())
+            {
+                int count;
+                do
+                {
+                    count = await stream.ReadAsync(data, 0, data.Length);
+                    memStream.Write(data, 0, count);
+                }
+                while (count == bufferSize);
+
+                LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } read info");
+                memStream.Position = 0;
+
+                try
+                {
+                    message = serializer.Deserialize(memStream);
+                }
+                catch
+                {
+                    throw new InvalidDataException("Unable to deserialize.");
+                }
+            }
+
+            return message;
         }
 
-        protected virtual async Task<T> ReadFromStreamAsync<T>(int bufferSize)
+        protected virtual async Task WriteToStreamAsync<T>(T data)
+        {
+            ISerializer<T> serializer = new BsonSerializer<T>();
+            byte[] serializedData = serializer.Serialize(data);
+
+            try
+            {
+                await stream.WriteAsync(serializedData, 0, serializedData.Length);
+            }
+            catch (ObjectDisposedException oDEx)
+            {
+                LogService.Service.TraceInfo(oDEx.Message);
+            }
+            catch (NullReferenceException nREx)
+            {
+                LogService.Service.TraceInfo(nREx.Message);
+            }
+        }*/
+
+        /*protected virtual async Task<T> ReadFromStreamAsync<T>(int bufferSize)
         {
             ISerializer<T> serializer = new BsonSerializer<T>();
             byte[] result = { };
@@ -97,25 +143,6 @@ namespace Storage.NetworkClients
 
             LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } read info");
             return serializer.Deserialize(result);
-        }
-
-        protected virtual async Task WriteToStreamAsync<T>(T data)
-        {
-            ISerializer<T> serializer = new BsonSerializer<T>();
-            byte[] serializedData = serializer.Serialize(data);
-
-            try
-            {
-                await stream.WriteAsync(serializedData, 0, serializedData.Length);
-            }
-            catch (ObjectDisposedException oDEx)
-            {
-                LogService.Service.TraceInfo(oDEx.Message);
-            }
-            catch (NullReferenceException nREx)
-            {
-                LogService.Service.TraceInfo(nREx.Message);
-            }
-        }
+        }*/
     }
 }
