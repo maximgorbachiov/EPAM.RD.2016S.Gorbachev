@@ -1,7 +1,7 @@
-﻿using StorageInterfaces.ISerializers;
-using System.IO;
+﻿using System.IO;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Bson;
+using StorageInterfaces.ISerializers;
 
 namespace StorageLib.Serializers
 {
@@ -23,8 +23,8 @@ namespace StorageLib.Serializers
         public T Deserialize(byte[] obj)
         {
             T result;
-
             var stream = new MemoryStream(obj);
+
             using (BsonReader reader = new BsonReader(stream))
             {
                 JsonSerializer serializer = new JsonSerializer();
@@ -37,11 +37,13 @@ namespace StorageLib.Serializers
         public byte[] Serialize(T obj)
         {
             MemoryStream stream = new MemoryStream();
+
             using (BsonWriter writer = new BsonWriter(stream))
             {
                 JsonSerializer serializer = new JsonSerializer();
                 serializer.Serialize(writer, obj);
             }
+
             return stream.ToArray();
         }
     }

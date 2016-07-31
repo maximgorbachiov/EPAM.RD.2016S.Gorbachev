@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
-using StorageInterfaces.Entities;
+using StorageInterfaces.CommunicationEntities.WcfEntities;
 
 namespace StorageInterfaces.CommunicationEntities
 {

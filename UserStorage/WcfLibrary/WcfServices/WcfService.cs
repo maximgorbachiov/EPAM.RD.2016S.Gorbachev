@@ -1,18 +1,17 @@
-﻿using StorageInterfaces.CommunicationEntities.WcfEntities;
-using StorageInterfaces.Entities;
+﻿using System;
+using System.Collections.Generic;
+using System.ServiceModel;
+using StorageInterfaces.CommunicationEntities.WcfEntities;
+using StorageInterfaces.INetworkConnections;
 using StorageInterfaces.IRepositories;
 using StorageInterfaces.IServices;
 using StorageInterfaces.IWcfServices;
-using StorageInterfaces.Mappers;
-using System;
-using System.Collections.Generic;
-using System.ServiceModel;
 using WcfLibrary.Interfaces;
 
 namespace WcfLibrary.WcfServices
 {
     [ServiceBehavior(InstanceContextMode = InstanceContextMode.Single)]
-    public class WcfService : MarshalByRefObject, IServiceContract, IWcfLoader
+    public class WcfService : MarshalByRefObject, IServiceContract, IWcfLoader, IWcfListener
     {
         private readonly IService service;
 
@@ -21,9 +20,9 @@ namespace WcfLibrary.WcfServices
             this.service = service;
         }
 
-        public int AddUser(UserDataContract userData)
+        public int AddUser(User userData)
         {
-            return service.AddUser(userData.ToUser());
+            return service.AddUser(userData);
         }
 
         public void DeleteUser(int id)
@@ -31,9 +30,9 @@ namespace WcfLibrary.WcfServices
             service.DeleteUser(id);
         }
 
-        public List<int> SearchBy(/*IComparer<User> comparer, */UserDataContract searchingUser)
+        public List<int> SearchBy(IComparer<User> comparer, User searchingUser)
         {
-            return null;//service.SearchBy(comparer, searchingUser.ToUser());
+            return service.SearchBy(comparer, searchingUser);
         }
 
         void IWcfLoader.Load()
@@ -44,6 +43,11 @@ namespace WcfLibrary.WcfServices
         void IWcfLoader.Save()
         {
             (service as ILoader)?.Save();
+        }
+
+        void IWcfListener.UpdateByCommand()
+        {
+            (service as IListener)?.UpdateByMasterCommand();
         }
     }
 }

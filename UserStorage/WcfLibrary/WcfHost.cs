@@ -1,12 +1,11 @@
 ﻿using System;
-using StorageInterfaces.IServices;
 using System.ServiceModel;
-using WcfLibrary.WcfServices;
 using System.ServiceModel.Description;
+using StorageInterfaces.IServices;
 using StorageInterfaces.IWcfServices;
 using StorageLib.Services;
 using WcfLibrary.Interfaces;
-using StorageInterfaces.INetworkConnections;
+using WcfLibrary.WcfServices;
 
 namespace WcfLibrary
 {
@@ -32,8 +31,8 @@ namespace WcfLibrary
 
         public void OpenWcfService()
         {
-            (host.SingletonInstance as IWcfLoader).Load();
-            (host.SingletonInstance as INetworkUpdater)?.UpdateByCommand();
+            ((IWcfLoader)host.SingletonInstance).Load();
+            ((IWcfListener)host.SingletonInstance)?.UpdateByCommand();
             host.Open();
             LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } wcf service was opened");
         }

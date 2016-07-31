@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.Serialization;
 
-namespace StorageInterfaces.Entities
+namespace StorageInterfaces.CommunicationEntities.WcfEntities
 {
     [DataContract]
     public struct CountryVisa

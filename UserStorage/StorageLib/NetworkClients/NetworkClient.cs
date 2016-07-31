@@ -1,22 +1,15 @@
-﻿using System;
-using System.Net.Sockets;
-using System.Threading.Tasks;
-using StorageInterfaces.INetworkConnections;
-using StorageInterfaces.ISerializers;
-using StorageLib.Serializers;
-using StorageLib.Services;
-using System.IO;
+﻿using System.Net.Sockets;
 
 namespace StorageLib.NetworkClients
 {
     public class NetworkClient// : INetworkIO
     {
-        protected TcpClient client;
-
         public NetworkClient(TcpClient client)
         {
-            this.client = client;
+            Client = client;
         }
+
+        protected TcpClient Client { get; set; }
 
         /*public async Task<T> ReadAsync<T>(int bufferSize)
         {

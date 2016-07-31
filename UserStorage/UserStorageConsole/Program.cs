@@ -5,9 +5,9 @@ using StorageLib.Services;
 
 namespace UserStorageConsole
 {
-    class Program
+    public class Program
     {
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
             Configurator configurator = new Configurator();
             configurator.Load();
@@ -17,21 +17,21 @@ namespace UserStorageConsole
                 try
                 {
                     Console.ReadLine();
-                    //configurator.MasterService.AddUser(new User());
+                    ////configurator.MasterService.AddUser(new User());
                 }
-                catch (ObjectDisposedException oDEx)
+                catch (ObjectDisposedException objectDisposedException)
                 {
-                    LogService.Service.TraceInfo(oDEx.Message);
+                    LogService.Service.TraceInfo(objectDisposedException.Message);
                 }
-                catch (NullReferenceException nREx)
+                catch (NullReferenceException nullReferenceException)
                 {
-                    LogService.Service.TraceInfo(nREx.Message);
+                    LogService.Service.TraceInfo(nullReferenceException.Message);
                 }
             }
 
             Console.ReadKey();
-            //configurator.Save();
-            //Console.ReadKey();
+            ////configurator.Save();
+            ////Console.ReadKey();
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using StorageInterfaces.CommunicationEntities.WcfEntities;
 using StorageInterfaces.Entities;
 using StorageInterfaces.IValidators;
 

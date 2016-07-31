@@ -1,8 +1,8 @@
-﻿using StorageInterfaces.Entities;
-using StorageInterfaces.IRepositories;
-using System;
+﻿using System;
 using System.IO;
 using System.Xml.Serialization;
+using StorageInterfaces.Entities;
+using StorageInterfaces.IRepositories;
 
 namespace StorageLib.Repositories
 {
@@ -26,6 +26,7 @@ namespace StorageLib.Repositories
                     return (ServiceState)formatter.Deserialize(xmlFile);
                 }
             }
+
             return new ServiceState();
         }
 

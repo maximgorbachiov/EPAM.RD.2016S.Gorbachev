@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using StorageInterfaces.Entities;
+using System.Threading;
+using StorageInterfaces.CommunicationEntities.WcfEntities;
 using StorageInterfaces.EventArgs;
 using StorageInterfaces.IFactories;
 using StorageInterfaces.INetworkConnections;
 using StorageInterfaces.IRepositories;
 using StorageInterfaces.IServices;
+using StorageInterfaces.Mappers;
 using StorageLib.Services;
 
 namespace StorageLib.Storages
@@ -14,6 +16,7 @@ namespace StorageLib.Storages
     public class SlaveService : MarshalByRefObject, IService, IListener
     {
         private readonly INetworkUpdater networkUpdater;
+        private readonly ReaderWriterLockSlim locker = new ReaderWriterLockSlim();
 
         private readonly List<User> users;
 
@@ -22,7 +25,7 @@ namespace StorageLib.Storages
             networkUpdater = factory.CreateDependency<INetworkUpdater>();
             networkUpdater.OnAdd += AddUserUpdate;
             networkUpdater.OnDelete += DeleteUserUpdate;
-            users = factory.CreateDependency<IRepository>().Load().Users ?? new List<User>();
+            users = factory.CreateDependency<IRepository>().Load().Users?.Select(user => user.ToUser()).ToList() ?? new List<User>();
             LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } is created");
             LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } is load");
         }
@@ -49,16 +52,42 @@ namespace StorageLib.Storages
                 throw new NullReferenceException(nameof(searchingUser));
             }
 
-            return users.Where(user => comparator.Compare(user, searchingUser) == 0)
-                .Select(user => user.Id).ToList();
+            List<int> result;
+            locker.EnterReadLock();
+
+            try
+            {
+                result = users.Where(user => comparator.Compare(user, searchingUser) == 0)
+                    .Select(user => user.Id).ToList();
+            }
+            finally
+            {
+                locker.ExitReadLock();
+            }
+
+            return result;
+        }
+
+        public void UpdateByMasterCommand()
+        {
+            networkUpdater.UpdateByCommand();
         }
 
         protected virtual void AddUserUpdate(object sender, AddEventArg e)
         {
             if (e.User != null)
             {
-                users.Add(e.User);
-                LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } is added user №{ users.Count }");
+                locker.EnterWriteLock();
+
+                try
+                {
+                    users.Add(e.User);
+                    LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } is added user №{ users.Count }");
+                }
+                finally
+                {
+                    locker.ExitWriteLock();
+                }
             }
         }
 
@@ -67,14 +96,18 @@ namespace StorageLib.Storages
             User user;
             if ((user = users.FirstOrDefault(u => u.Id == e.Id)) != null)
             {
-                users.Remove(user);
-                LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } is deleted user { user.Id }");
-            }
-        }
+                locker.EnterWriteLock();
 
-        public void UpdateByMasterCommand()
-        {
-            networkUpdater.UpdateByCommand();
+                try
+                {
+                    users.Remove(user);
+                    LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } is deleted user { user.Id }");
+                }
+                finally
+                {
+                    locker.ExitWriteLock();
+                }
+            }
         }
 
         /*public async void NotifyMasterAboutSlaveCreate()

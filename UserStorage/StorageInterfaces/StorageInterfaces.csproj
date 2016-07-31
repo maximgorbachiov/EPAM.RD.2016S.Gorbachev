@@ -50,18 +50,17 @@
     <Compile Include="CommunicationEntities\ServiceCommands.cs" />
     <Compile Include="CommunicationEntities\SlaveConnectionData.cs" />
     <Compile Include="CommunicationEntities\UsersCollection.cs" />
-    <Compile Include="CommunicationEntities\WcfEntities\UserDataContract.cs" />
-    <Compile Include="Entities\CountryVisa.cs" />
+    <Compile Include="CommunicationEntities\WcfEntities\CountryVisa.cs" />
+    <Compile Include="CommunicationEntities\WcfEntities\User.cs" />
+    <Compile Include="Entities\SavedCountryVisa.cs" />
     <Compile Include="Entities\Gender.cs" />
     <Compile Include="Entities\ServiceState.cs" />
     <Compile Include="Entities\TypeEntity.cs" />
-    <Compile Include="Entities\User.cs" />
+    <Compile Include="Entities\SavedUser.cs" />
     <Compile Include="EventArgs\AddEventArg.cs" />
     <Compile Include="EventArgs\DeleteEventArg.cs" />
     <Compile Include="IFactories\IFactory.cs" />
     <Compile Include="IGenerators\IGenerator.cs" />
-    <Compile Include="INetworkConnections\IBroadcastNotificator.cs" />
-    <Compile Include="INetworkConnections\IBroadcastReceiver.cs" />
     <Compile Include="INetworkConnections\IListener.cs" />
     <Compile Include="INetworkConnections\INetworkNotificator.cs" />
     <Compile Include="INetworkConnections\INetworkIO.cs" />
@@ -75,6 +74,7 @@
     <Compile Include="IWcfServices\IServiceContract.cs" />
     <Compile Include="IWcfServices\IWcfHost.cs" />
     <Compile Include="Mappers\UserMapper.cs" />
+    <Compile Include="Mappers\VisasMapper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

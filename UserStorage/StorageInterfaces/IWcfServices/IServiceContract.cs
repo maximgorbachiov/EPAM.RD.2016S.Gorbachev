@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.ServiceModel;
 using StorageInterfaces.CommunicationEntities.WcfEntities;
-using StorageInterfaces.Entities;
 
 namespace StorageInterfaces.IWcfServices
 {
@@ -9,12 +8,12 @@ namespace StorageInterfaces.IWcfServices
     public interface IServiceContract
     {
         [OperationContract]
-        int AddUser(UserDataContract userData);
+        int AddUser(User userData);
 
         [OperationContract]
         void DeleteUser(int id);
 
         [OperationContract]
-        List<int> SearchBy(/*IComparer<User> comparer, */UserDataContract searchingUser);
+        List<int> SearchBy(IComparer<User> comparer, User searchingUser);
     }
 }

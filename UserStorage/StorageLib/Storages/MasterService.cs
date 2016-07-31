@@ -1,14 +1,17 @@
-﻿using StorageInterfaces.Entities;
-using StorageInterfaces.IGenerators;
-using StorageInterfaces.IRepositories;
-using StorageInterfaces.IValidators;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using StorageInterfaces.CommunicationEntities;
+using StorageInterfaces.CommunicationEntities.WcfEntities;
+using StorageInterfaces.Entities;
 using StorageInterfaces.IFactories;
+using StorageInterfaces.IGenerators;
 using StorageInterfaces.INetworkConnections;
+using StorageInterfaces.IRepositories;
 using StorageInterfaces.IServices;
+using StorageInterfaces.IValidators;
+using StorageInterfaces.Mappers;
 using StorageLib.Services;
 
 namespace StorageLib.Storages
@@ -19,6 +22,7 @@ namespace StorageLib.Storages
         private readonly IGenerator generator;
         private readonly IRepository repository;
         private readonly INetworkNotificator networkNotificator;
+        private readonly ReaderWriterLockSlim locker = new ReaderWriterLockSlim();
 
         private List<User> users = new List<User>();
 
@@ -48,9 +52,19 @@ namespace StorageLib.Storages
                 throw new ArgumentException(nameof(user));
             }
 
-            user.Id = generator.Current;
-            users.Add(user);
-            LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } add user №{ users.Count }");
+            locker.EnterWriteLock();
+
+            try
+            {
+                user.Id = generator.Current;
+                users.Add(user);
+                LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } add user №{ users.Count }");
+            }
+            finally
+            {
+                locker.ExitWriteLock();
+            }
+
             networkNotificator.NotifyServicesAboutDataUpdate(new NetworkData(user, ServiceCommands.ADD_USER));
             return user.Id;
         }
@@ -62,9 +76,20 @@ namespace StorageLib.Storages
                 throw new ArgumentException(nameof(id));
             }
 
-            var user = users.FirstOrDefault(u => u.Id == id);
-            users.Remove(user);
-            LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } delete user №{ id }");
+            User user;
+            locker.EnterWriteLock();
+
+            try
+            {
+                user = users.FirstOrDefault(u => u.Id == id);
+                users.Remove(user);
+                LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } delete user №{ id }");
+            }
+            finally
+            {
+                locker.ExitWriteLock();
+            }
+
             networkNotificator.NotifyServicesAboutDataUpdate(new NetworkData(user, ServiceCommands.DELETE_USER));
         }
 
@@ -79,52 +104,55 @@ namespace StorageLib.Storages
             {
                 throw new NullReferenceException(nameof(searchingUser));
             }
-            
-            var usersId = users.Where(user => comparator.Compare(user, searchingUser) == 0)
-                .Select(user => user.Id).ToList();
-            
-            LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } find users");
+
+            List<int> usersId;
+            locker.EnterReadLock();
+
+            try
+            {
+                usersId = users.Where(user => comparator.Compare(user, searchingUser) == 0)
+                    .Select(user => user.Id).ToList();
+
+                LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } find users");
+            }
+            finally
+            {
+                locker.ExitReadLock();
+            }
 
             return usersId;
         }
 
         void ILoader.Load()
         {
-            ServiceState lastState = repository.Load();
-            users = lastState.Users ?? new List<User>();
-            generator.SetGeneratorState(lastState.LastId);
-            LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } loaded");
+            locker.EnterWriteLock();
+
+            try
+            {
+                ServiceState lastState = repository.Load();
+                users = lastState.Users?.Select(user => user.ToUser()).ToList() ?? new List<User>();
+                generator.SetGeneratorState(lastState.LastId);
+                LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } loaded");
+            }
+            finally
+            {
+                locker.ExitWriteLock();
+            }
         }
 
         void ILoader.Save()
         {
-            repository.Save(new ServiceState { Users = users, LastId = generator.Current });
-            LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } saved his state");
-        }
+            locker.EnterWriteLock();
 
-        /*public async void InitializeServices()
-        {
-            var listener = new TcpListener(masterEndPoint);
-            listener.Start();
-
-            while (true)
+            try
             {
-                var client = await listener.AcceptTcpClientAsync();
-
-                using (var host = new NetworkClient(client))
-                {
-                    var command = (await host.ReadAsync<NetworkData>(1024)).Command;
-
-                    switch (command)
-                    {
-                        case ServiceCommands.IS_CREATED:
-                            host.WriteAsync(new UsersCollection(users));
-                            break;
-                    }
-
-                    slavesEndPoints.Add((IPEndPoint)client.Client.RemoteEndPoint);
-                }
+                repository.Save(new ServiceState { Users = users?.Select(user => user.ToSavedUser()).ToList(), LastId = generator.Current });
+                LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } saved his state");
             }
-        }*/
+            finally
+            {
+                locker.ExitWriteLock();
+            }
+        }
     }
 }

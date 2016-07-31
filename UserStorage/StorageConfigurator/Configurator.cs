@@ -81,7 +81,7 @@ namespace StorageConfigurator
         {
             masterHost.CloseWcfService();
             
-            foreach(var host in slaveHosts)
+            foreach (var host in slaveHosts)
             {
                 host.CloseWcfService();
             }

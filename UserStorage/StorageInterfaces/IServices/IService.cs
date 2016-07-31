@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using StorageInterfaces.Entities;
+using StorageInterfaces.CommunicationEntities.WcfEntities;
 
 namespace StorageInterfaces.IServices
 {

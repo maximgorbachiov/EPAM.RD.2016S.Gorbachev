@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.IO;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 using StorageInterfaces.ISerializers;
 using StorageLib.Serializers;
 using StorageLib.Services;
-using System.IO;
 
 namespace Storage.NetworkClients
 {
@@ -54,13 +53,13 @@ namespace Storage.NetworkClients
                 var stream = client.GetStream();
                 await stream.WriteAsync(serializedData, 0, serializedData.Length);
             }
-            catch (ObjectDisposedException oDEx)
+            catch (ObjectDisposedException objectDisposedException)
             {
-                LogService.Service.TraceInfo(oDEx.Message);
+                LogService.Service.TraceInfo(objectDisposedException.Message);
             }
-            catch (NullReferenceException nREx)
+            catch (NullReferenceException nullReferenceException)
             {
-                LogService.Service.TraceInfo(nREx.Message);
+                LogService.Service.TraceInfo(nullReferenceException.Message);
             }
         }
     }
