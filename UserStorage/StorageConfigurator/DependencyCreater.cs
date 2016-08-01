@@ -17,14 +17,6 @@ namespace StorageConfigurator
             this.dependencies = dependencies;
         }
 
-        /*public T CreateDependency<T>()
-        {
-            var type = Type.GetType(typeName);
-            if (type?.GetInterface(typeof(T).Name) == null || type.GetConstructor(new Type[] { }) == null)
-                throw new ConfigurationErrorsException("Unable to create.");
-            return (T)Activator.CreateInstance(type);
-        }*/
-
         public T CreateDependency<T>()
         {
             var dependency = dependencies[typeof(T)];

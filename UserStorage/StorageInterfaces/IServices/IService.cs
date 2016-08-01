@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using StorageInterfaces.CommunicationEntities.WcfEntities;
 
 namespace StorageInterfaces.IServices
@@ -9,6 +10,6 @@ namespace StorageInterfaces.IServices
 
         void DeleteUser(int id);
 
-        List<int> SearchBy(IComparer<User> comparator, User searchingUser);
+        List<int> SearchBy(Func<List<User>, List<User>>[] searchFuncs);
     }
 }

@@ -12,11 +12,9 @@ namespace StorageLib.NetworkClients
     public class NetworkNotificator : INetworkNotificator
     {
         private readonly List<IPEndPoint> slavesEndPoints;
-        private IPEndPoint endPoint;
 
         public NetworkNotificator(ServicesIp masterConnectionData)
         {
-            endPoint = masterConnectionData.MasterEndPoint;
             slavesEndPoints = masterConnectionData.SlavesEndPoints;
         }
 

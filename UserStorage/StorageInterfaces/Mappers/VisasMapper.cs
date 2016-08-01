@@ -9,7 +9,7 @@ namespace StorageInterfaces.Mappers
         {
             return new SavedCountryVisa
             {
-                Country = visa.Country,
+                Country = visa.Country ?? "",
                 Start = visa.Start,
                 End = visa.End
             };
@@ -19,7 +19,7 @@ namespace StorageInterfaces.Mappers
         {
             return new CountryVisa
             {
-                Country = visa.Country,
+                Country = visa.Country ?? "",
                 Start = visa.Start,
                 End = visa.End
             };

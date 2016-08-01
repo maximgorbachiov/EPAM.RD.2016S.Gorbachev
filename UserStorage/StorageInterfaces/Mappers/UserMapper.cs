@@ -11,11 +11,11 @@ namespace StorageInterfaces.Mappers
             return new SavedUser
             {
                 Id = user.Id,
-                Name = user.Name,
-                SecondName = user.SecondName,
+                Name = user.Name ?? "",
+                SecondName = user.SecondName ?? "",
                 DateOfBirth = user.DateOfBirth,
                 Gender = user.Gender,
-                Visas = user.Visas.Select(visa => visa.ToSavedVisa()).ToArray()
+                Visas = user.Visas?.Select(visa => visa.ToSavedVisa()).ToArray() ?? new SavedCountryVisa[] { }
             };
         }
 
@@ -24,11 +24,11 @@ namespace StorageInterfaces.Mappers
             return new User
             {
                 Id = user.Id,
-                Name = user.Name,
-                SecondName = user.SecondName,
+                Name = user.Name ?? "",
+                SecondName = user.SecondName ?? "",
                 DateOfBirth = user.DateOfBirth,
                 Gender = user.Gender,
-                Visas = user.Visas.Select(visa => visa.ToVisa()).ToArray()
+                Visas = user.Visas?.Select(visa => visa.ToVisa()).ToArray() ?? new CountryVisa[] { }
             };
         }
     }

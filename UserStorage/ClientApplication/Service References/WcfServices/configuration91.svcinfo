@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<SavedWcfConfigurationInformation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Version="9.1" CheckSum="EUL0uC/4EhRL2tRnhTiOMaDD5D8=">
+<SavedWcfConfigurationInformation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Version="9.1" CheckSum="1yfiMk9idEPk7Uhb7Hq697vqPMk=">
   <bindingConfigurations>
     <bindingConfiguration bindingType="basicHttpBinding" name="BasicHttpBinding_IServiceContract">
       <properties>
@@ -112,7 +112,7 @@
     </bindingConfiguration>
   </bindingConfigurations>
   <endpoints>
-    <endpoint name="BasicHttpBinding_IServiceContract" contract="WcfService.IServiceContract" bindingType="basicHttpBinding" address="http://localhost:8080/master" bindingConfiguration="BasicHttpBinding_IServiceContract">
+    <endpoint name="BasicHttpBinding_IServiceContract" contract="WcfServices.IServiceContract" bindingType="basicHttpBinding" address="http://localhost:8080/master" bindingConfiguration="BasicHttpBinding_IServiceContract">
       <properties>
         <property path="/address" isComplexType="false" isExplicitlyDefined="true" clrType="System.Uri, System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
           <serializedValue>http://localhost:8080/master</serializedValue>
@@ -127,7 +127,7 @@
           <serializedValue>BasicHttpBinding_IServiceContract</serializedValue>
         </property>
         <property path="/contract" isComplexType="false" isExplicitlyDefined="true" clrType="System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-          <serializedValue>WcfService.IServiceContract</serializedValue>
+          <serializedValue>WcfServices.IServiceContract</serializedValue>
         </property>
         <property path="/headers" isComplexType="true" isExplicitlyDefined="false" clrType="System.ServiceModel.Configuration.AddressHeaderCollectionElement, System.ServiceModel, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
           <serializedValue>System.ServiceModel.Configuration.AddressHeaderCollectionElement</serializedValue>

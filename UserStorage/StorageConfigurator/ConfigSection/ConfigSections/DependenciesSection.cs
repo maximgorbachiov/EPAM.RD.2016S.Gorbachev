@@ -1,8 +1,9 @@
 ﻿using System.Configuration;
+using StorageConfigurator.ConfigSection.ConfigElements;
 
-namespace StorageConfigurator.ConfigSection
+namespace StorageConfigurator.ConfigSection.ConfigSections
 {
-    public class ServicesInfoSection : ConfigurationSection
+    public class DependenciesSection : ConfigurationSection
     {
         [ConfigurationProperty("Generator")]
         public TypeInfoElement Generator => (TypeInfoElement)base["Generator"];

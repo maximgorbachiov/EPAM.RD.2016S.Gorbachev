@@ -6,6 +6,7 @@ using StorageInterfaces.INetworkConnections;
 using StorageInterfaces.IRepositories;
 using StorageInterfaces.IServices;
 using StorageInterfaces.IWcfServices;
+using StorageLib.Services;
 using WcfLibrary.Interfaces;
 
 namespace WcfLibrary.WcfServices
@@ -30,9 +31,9 @@ namespace WcfLibrary.WcfServices
             service.DeleteUser(id);
         }
 
-        public List<int> SearchBy(IComparer<User> comparer, User searchingUser)
+        public List<int> SearchBy(User searchingUser)
         {
-            return service.SearchBy(comparer, searchingUser);
+            return service.SearchBy(new Func<List<User>, List<User>>[] { searchingUser.SearchUsersByName, searchingUser.SearchUsersById });
         }
 
         void IWcfLoader.Load()

@@ -9,7 +9,7 @@ namespace StorageInterfaces.Entities
     [Serializable]
     public class ServiceState : IXmlSerializable
     {
-        public List<SavedUser> Users { get; set; }
+        public List<SavedUser> Users { get; set; } = new List<SavedUser>();
 
         public int LastId { get; set; }
 

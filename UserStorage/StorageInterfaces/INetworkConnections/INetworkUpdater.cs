@@ -5,9 +5,7 @@ namespace StorageInterfaces.INetworkConnections
 {
     public interface INetworkUpdater
     {
-        EventHandler<AddEventArg> OnAdd { get; set; }
-
-        EventHandler<DeleteEventArg> OnDelete { get; set; }
+        EventHandler<ReceiveMessageEventArg> OnMessageReceived { get; set; }
 
         void UpdateByCommand();
     }

@@ -43,11 +43,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ConfigSection\ServicesInfoSection.cs" />
-    <Compile Include="ConfigSection\ServicesSection.cs" />
-    <Compile Include="ConfigSection\TypeInfoElement.cs" />
-    <Compile Include="ConfigSection\ServiceElement.cs" />
-    <Compile Include="ConfigSection\ServicesCollection.cs" />
+    <Compile Include="ConfigSection\ConfigCollections\EndPointCollection.cs" />
+    <Compile Include="ConfigSection\ConfigCollections\ServicesCollection.cs" />
+    <Compile Include="ConfigSection\ConfigElements\EndPointElement.cs" />
+    <Compile Include="ConfigSection\ConfigElements\ServiceElement.cs" />
+    <Compile Include="ConfigSection\ConfigElements\TypeInfoElement.cs" />
+    <Compile Include="ConfigSection\ConfigSections\DependenciesSection.cs" />
+    <Compile Include="ConfigSection\ConfigSections\ServicesSection.cs" />
+    <Compile Include="ConfigSection\ConfigSections\SlavesIpSection.cs" />
     <Compile Include="Configurator.cs" />
     <Compile Include="DependencyCreater.cs" />
     <Compile Include="IConfigurator.cs" />

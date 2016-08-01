@@ -1,6 +1,5 @@
 ﻿using System;
 using StorageConfigurator;
-using StorageInterfaces.Entities;
 using StorageLib.Services;
 
 namespace UserStorageConsole
@@ -12,26 +11,20 @@ namespace UserStorageConsole
             Configurator configurator = new Configurator();
             configurator.Load();
 
-            for (int i = 0; i < 5; i++)
+            try
             {
-                try
-                {
-                    Console.ReadLine();
-                    ////configurator.MasterService.AddUser(new User());
-                }
-                catch (ObjectDisposedException objectDisposedException)
-                {
-                    LogService.Service.TraceInfo(objectDisposedException.Message);
-                }
-                catch (NullReferenceException nullReferenceException)
-                {
-                    LogService.Service.TraceInfo(nullReferenceException.Message);
-                }
+                Console.ReadLine();
+                configurator.Save();
             }
-
-            Console.ReadKey();
-            ////configurator.Save();
-            ////Console.ReadKey();
+            catch (ObjectDisposedException objectDisposedException)
+            {
+                LogService.Service.TraceInfo(objectDisposedException.Message);
+            }
+            catch (NullReferenceException nullReferenceException)
+            {
+                LogService.Service.TraceInfo(nullReferenceException.Message);
+            }
+            Console.ReadLine();
         }
     }
 }

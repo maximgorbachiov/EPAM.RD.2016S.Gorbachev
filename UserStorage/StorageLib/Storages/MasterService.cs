@@ -56,6 +56,7 @@ namespace StorageLib.Storages
 
             try
             {
+                generator.MoveNext();
                 user.Id = generator.Current;
                 users.Add(user);
                 LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } add user №{ users.Count }");
@@ -76,12 +77,18 @@ namespace StorageLib.Storages
                 throw new ArgumentException(nameof(id));
             }
 
-            User user;
+            User user = users.FirstOrDefault(u => u.Id == id);
+
+            if (user == null)
+            {
+                LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } user №{ id } doesn't exist");
+                return;
+            }
+
             locker.EnterWriteLock();
 
             try
-            {
-                user = users.FirstOrDefault(u => u.Id == id);
+            { 
                 users.Remove(user);
                 LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } delete user №{ id }");
             }
@@ -93,34 +100,33 @@ namespace StorageLib.Storages
             networkNotificator.NotifyServicesAboutDataUpdate(new NetworkData(user, ServiceCommands.DELETE_USER));
         }
 
-        public List<int> SearchBy(IComparer<User> comparator, User searchingUser)
+        public List<int> SearchBy(Func<List<User>, List<User>>[] searchFuncs)
         {
-            if (comparator == null)
+            if (searchFuncs == null)
             {
-                throw new NullReferenceException(nameof(comparator));
+                throw new NullReferenceException(nameof(searchFuncs));
             }
 
-            if (searchingUser == null)
-            {
-                throw new NullReferenceException(nameof(searchingUser));
-            }
+            var tempResults = new List<List<User>>();
+            var result = new List<int>();
 
-            List<int> usersId;
             locker.EnterReadLock();
 
             try
             {
-                usersId = users.Where(user => comparator.Compare(user, searchingUser) == 0)
-                    .Select(user => user.Id).ToList();
+                tempResults.AddRange(searchFuncs.Select(func => func(users)));
 
-                LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } find users");
+                foreach (var tempResult in tempResults)
+                {
+                    result.AddRange(tempResult.Distinct().Select(user => user.Id));
+                }
             }
             finally
             {
                 locker.ExitReadLock();
             }
 
-            return usersId;
+            return result.Distinct().ToList();
         }
 
         void ILoader.Load()

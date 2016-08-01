@@ -27,14 +27,7 @@ namespace StorageInterfaces.CommunicationEntities.WcfEntities
 
         public bool Equals(User other)
         {
-            if (other == null)
-            {
-                return false;
-            }
-
-            return Id == other.Id &&
-                Name == other.Name &&
-                SecondName == other.SecondName;
+            return Id == other?.Id;
         }
 
         public override bool Equals(object obj)

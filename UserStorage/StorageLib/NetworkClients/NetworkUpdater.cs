@@ -18,9 +18,7 @@ namespace StorageLib.NetworkClients
             this.endPoint = endPoint;
         }
 
-        public EventHandler<AddEventArg> OnAdd { get; set; }
-
-        public EventHandler<DeleteEventArg> OnDelete { get; set; }
+        public EventHandler<ReceiveMessageEventArg> OnMessageReceived { get; set; }
 
         public async void UpdateByCommand()
         {
@@ -33,20 +31,11 @@ namespace StorageLib.NetworkClients
                 {
                     using (var client = await listener.AcceptTcpClientAsync())
                     {
-                        var networkClient = new NetworkClient(client);
                         LogService.Service.TraceInfo($"{AppDomain.CurrentDomain.FriendlyName} accept client with port {((IPEndPoint)client.Client.RemoteEndPoint).Port}");
                         LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } try to read info from client with port {((IPEndPoint)client.Client.RemoteEndPoint).Port}");
                         var data = await client.ReadAsync<NetworkData>(1024);
                         LogService.Service.TraceInfo($"{ AppDomain.CurrentDomain.FriendlyName } read info from client with port {((IPEndPoint)client.Client.RemoteEndPoint).Port}");
-                        switch (data.Command)
-                        {
-                            case ServiceCommands.ADD_USER:
-                                OnAdd(this, new AddEventArg { User = data.User });
-                                break;
-                            case ServiceCommands.DELETE_USER:
-                                OnDelete(this, new DeleteEventArg { Id = data.User.Id });
-                                break;
-                        }
+                        OnMessageReceived(this, new ReceiveMessageEventArg { Data = data });
                     }
                 }
             }

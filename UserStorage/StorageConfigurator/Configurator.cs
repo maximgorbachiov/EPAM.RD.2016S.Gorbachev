@@ -4,7 +4,9 @@ using System.Configuration;
 using System.Globalization;
 using System.Net;
 using System.Reflection;
-using StorageConfigurator.ConfigSection;
+using StorageConfigurator.ConfigSection.ConfigCollections;
+using StorageConfigurator.ConfigSection.ConfigElements;
+using StorageConfigurator.ConfigSection.ConfigSections;
 using StorageInterfaces.CommunicationEntities;
 using StorageInterfaces.Entities;
 using StorageInterfaces.IGenerators;
@@ -27,8 +29,7 @@ namespace StorageConfigurator
         public void Load()
         {
             var servicesSection = (ServicesSection)ConfigurationManager.GetSection("ServicesSection");
-            var infoSection = (ServicesInfoSection)ConfigurationManager.GetSection("ServicesInfoSection");
-            ServicesIp servicesIp;
+            var dependenciesSection = (DependenciesSection)ConfigurationManager.GetSection("DependenciesSection");
             var slaves = new List<ServiceElement>();
             ServiceElement master = null;
 
@@ -39,47 +40,51 @@ namespace StorageConfigurator
 
             var servicesInfo = servicesSection.Services;
 
-            if (infoSection == null)
+            if (dependenciesSection == null)
             {
-                throw new NullReferenceException("Unable to read service info section from config.");
+                throw new NullReferenceException("Unable to read service dependencies section from config.");
             }
 
-            servicesIp = GetIpAddresses(servicesInfo, ref master, ref slaves);
+            var servicesIp = GetIpAddresses(servicesInfo, ref master, ref slaves);
             int j = 0;
 
-            foreach (var slave in slaves)
+            if (slaves != null)
             {
-                j++;
-                var slaveEndPoint = new IPEndPoint(IPAddress.Parse(slave.IpAddress), slave.Port);
-
-                servicesIp.SlavesEndPoints.Add(slaveEndPoint);
-
-                var slavesParams = new Dictionary<Type, TypeEntity>
+                foreach (var slave in slaves)
                 {
-                    { typeof(IRepository), new TypeEntity(infoSection.Repository.Type, FILENAME) },
-                    { typeof(INetworkUpdater), new TypeEntity(infoSection.NetworkUpdater.Type, slaveEndPoint) }
-                };
+                    j++;
+                    var slaveEndPoint = new IPEndPoint(IPAddress.Parse(slave.IpAddress), slave.Port);
 
-                IWcfHost slaveHost = CreateServiceHost($"Slave{j}", slave.ServiceType, slave.HostAddress, infoSection, slavesParams);
-                slaveHosts.Add(slaveHost);
-                slaveHost.OpenWcfService();
+                    var slavesParams = new Dictionary<Type, TypeEntity>
+                    {
+                        { typeof(IRepository), new TypeEntity(dependenciesSection.Repository.Type, FILENAME) },
+                        { typeof(INetworkUpdater), new TypeEntity(dependenciesSection.NetworkUpdater.Type, slaveEndPoint) }
+                    };
+
+                    IWcfHost slaveHost = CreateServiceHost($"Slave{j}", slave.ServiceType, slave.HostAddress, slavesParams);
+                    slaveHosts.Add(slaveHost);
+                    slaveHost.OpenWcfService();
+                }
             }
 
-            var masterParams = new Dictionary<Type, TypeEntity>
+            if (master != null)
             {
-                { typeof(IRepository), new TypeEntity(infoSection.Repository.Type, FILENAME) },
-                { typeof(IGenerator), new TypeEntity(infoSection.Generator.Type) },
-                { typeof(IValidator), new TypeEntity(infoSection.Validator.Type) },
-                { typeof(INetworkNotificator), new TypeEntity(infoSection.NetworkNotificator.Type, servicesIp) }
-            };
+                var masterParams = new Dictionary<Type, TypeEntity>
+                {
+                    { typeof(IRepository), new TypeEntity(dependenciesSection.Repository.Type, FILENAME) },
+                    { typeof(IGenerator), new TypeEntity(dependenciesSection.Generator.Type) },
+                    { typeof(IValidator), new TypeEntity(dependenciesSection.Validator.Type) },
+                    { typeof(INetworkNotificator), new TypeEntity(dependenciesSection.NetworkNotificator.Type, servicesIp) }
+                };
 
-            masterHost = CreateServiceHost("Master", master?.ServiceType, master?.HostAddress, infoSection, masterParams);
-            masterHost.OpenWcfService();
+                masterHost = CreateServiceHost("Master", master?.ServiceType, master?.HostAddress, masterParams);
+                masterHost.OpenWcfService();
+            }
         }
 
         public void Save()
         {
-            masterHost.CloseWcfService();
+            masterHost?.CloseWcfService();
             
             foreach (var host in slaveHosts)
             {
@@ -87,7 +92,7 @@ namespace StorageConfigurator
             }
         }
 
-        private IWcfHost CreateServiceHost(string hostName, string serviceType, string address, ServicesInfoSection info, Dictionary<Type, TypeEntity> parameters)
+        private IWcfHost CreateServiceHost(string hostName, string serviceType, string address, Dictionary<Type, TypeEntity> parameters)
         {
             var factory = new DependencyCreater(parameters);
 
@@ -125,15 +130,20 @@ namespace StorageConfigurator
 
         private ServicesIp GetIpAddresses(ServicesCollection collection, ref ServiceElement masterElement, ref List<ServiceElement> slavesElements)
         {
-            IPEndPoint masterEndPoint = null;
-            List<IPEndPoint> slaveEndPoints = new List<IPEndPoint>();
+            var slaveEndPoints = new List<IPEndPoint>();
 
             for (int i = 0; i < collection.Count; i++)
             {
                 if (collection[i].IsMaster)
                 {
-                    masterEndPoint = new IPEndPoint(IPAddress.Parse(collection[i].IpAddress), collection[i].Port);
                     masterElement = collection[i];
+
+                    var ipSection = (SlavesIpSection)ConfigurationManager.GetSection("SlavesIpSection");
+
+                    for (int j = 0; j < ipSection.EndPoints.Count; j++)
+                    {
+                        slaveEndPoints.Add(new IPEndPoint(IPAddress.Parse(ipSection.EndPoints[j].IpAddress), ipSection.EndPoints[j].Port));
+                    }
                 }
                 else
                 {
@@ -141,43 +151,7 @@ namespace StorageConfigurator
                 }
             }
 
-            return new ServicesIp { MasterEndPoint = masterEndPoint, SlavesEndPoints = slaveEndPoints };
+            return new ServicesIp { SlavesEndPoints = slaveEndPoints };
         }
-
-        /*private IWcfHost CreateSlaveHost(string slaveType, string address, ServicesInfoSection info, Dictionary<Type, TypeEntity> parameters)
-        {
-            var factory = new DependencyCreater(parameters);
-
-            var slaveDomain = AppDomain.CreateDomain($"Slave №{ slaveHosts.Count }");
-
-            var type = Type.GetType(slaveType);
-
-            if (type == null)
-            {
-                throw new ConfigurationErrorsException($"Invalid type of { slaveDomain.FriendlyName } domain");
-            }
-
-            var slave = (IService)slaveDomain.CreateInstanceAndUnwrap(
-                type.Assembly.FullName,
-                type.FullName,
-                true,
-                BindingFlags.CreateInstance,
-                null,
-                new object[] { factory },
-                CultureInfo.InvariantCulture,
-                null);
-
-            var host = (IWcfHost)slaveDomain.CreateInstanceAndUnwrap(
-                typeof(WcfHost).Assembly.FullName,
-                typeof(WcfHost).FullName,
-                true,
-                BindingFlags.CreateInstance,
-                null,
-                new object[] { slave, address },
-                CultureInfo.InvariantCulture,
-                null);
-
-            return host;
-        }*/
     }
 }

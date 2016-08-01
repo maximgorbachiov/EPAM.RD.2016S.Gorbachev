@@ -1,6 +1,7 @@
 ﻿using System.Configuration;
+using StorageConfigurator.ConfigSection.ConfigElements;
 
-namespace StorageConfigurator.ConfigSection
+namespace StorageConfigurator.ConfigSection.ConfigCollections
 {
     [ConfigurationCollection(typeof(ServiceElement), AddItemName = "Service")]
     public class ServicesCollection : ConfigurationElementCollection

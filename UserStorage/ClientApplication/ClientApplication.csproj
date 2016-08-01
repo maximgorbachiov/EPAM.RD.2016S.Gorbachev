@@ -47,7 +47,7 @@
   <ItemGroup>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Service References\WcfService\Reference.cs">
+    <Compile Include="Service References\WcfServices\Reference.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Reference.svcmap</DependentUpon>
@@ -55,43 +55,25 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="Service References\WcfService\master.xsd">
+    <None Include="Service References\WcfServices\master.xsd">
       <SubType>Designer</SubType>
     </None>
-    <None Include="Service References\WcfService\master1.xsd">
+    <None Include="Service References\WcfServices\master1.xsd">
       <SubType>Designer</SubType>
     </None>
-    <None Include="Service References\WcfService\master2.xsd">
+    <None Include="Service References\WcfServices\master2.xsd">
       <SubType>Designer</SubType>
     </None>
-    <None Include="Service References\WcfService\master3.xsd">
+    <None Include="Service References\WcfServices\master3.xsd">
       <SubType>Designer</SubType>
     </None>
-    <None Include="Service References\WcfService\master4.xsd">
+    <None Include="Service References\WcfServices\master4.xsd">
       <SubType>Designer</SubType>
     </None>
-    <None Include="Service References\WcfService\WcfService.wsdl" />
+    <None Include="Service References\WcfServices\WcfService.wsdl" />
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Service References\" />
-  </ItemGroup>
-  <ItemGroup>
-    <WCFMetadataStorage Include="Service References\WcfService\" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Service References\WcfService\master.disco" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Service References\WcfService\configuration91.svcinfo" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Service References\WcfService\configuration.svcinfo" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Service References\WcfService\Reference.svcmap">
-      <Generator>WCF Proxy Generator</Generator>
-      <LastGenOutput>Reference.cs</LastGenOutput>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\StorageInterfaces\StorageInterfaces.csproj">
@@ -102,6 +84,24 @@
       <Project>{f2cba655-5d87-43df-8bfd-5ed48f668ea2}</Project>
       <Name>WcfLibrary</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadataStorage Include="Service References\WcfServices\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Service References\WcfServices\master.disco" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Service References\WcfServices\configuration91.svcinfo" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Service References\WcfServices\configuration.svcinfo" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Service References\WcfServices\Reference.svcmap">
+      <Generator>WCF Proxy Generator</Generator>
+      <LastGenOutput>Reference.cs</LastGenOutput>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -11,7 +11,7 @@ namespace WcfLibrary
 {
     public class WcfHost : MarshalByRefObject, IWcfHost
     {
-        private ServiceHost host;
+        private readonly ServiceHost host;
 
         public WcfHost(IService service, string address)
         {

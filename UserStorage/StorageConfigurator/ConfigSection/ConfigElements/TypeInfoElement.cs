@@ -1,6 +1,6 @@
 ﻿using System.Configuration;
 
-namespace StorageConfigurator.ConfigSection
+namespace StorageConfigurator.ConfigSection.ConfigElements
 {
     public class TypeInfoElement : ConfigurationElement
     {

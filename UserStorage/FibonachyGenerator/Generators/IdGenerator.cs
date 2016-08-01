@@ -15,13 +15,11 @@ namespace FibonachyGenerator.Generators
             iterator = new FibonachyIterator();
         }
 
-        public int Current
+        public int Current => iterator.Current;
+
+        public void MoveNext()
         {
-            get
-            {
-                iterator.MoveNext();
-                return iterator.Current;
-            }
+            iterator.MoveNext();
         }
 
         public void SetGeneratorState(int value)

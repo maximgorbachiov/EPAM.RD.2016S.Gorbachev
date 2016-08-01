@@ -45,6 +45,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CommunicationEntities\ServiceEndPoint.cs" />
     <Compile Include="CommunicationEntities\ServicesIp.cs" />
     <Compile Include="CommunicationEntities\NetworkData.cs" />
     <Compile Include="CommunicationEntities\ServiceCommands.cs" />
@@ -57,10 +58,11 @@
     <Compile Include="Entities\ServiceState.cs" />
     <Compile Include="Entities\TypeEntity.cs" />
     <Compile Include="Entities\SavedUser.cs" />
-    <Compile Include="EventArgs\AddEventArg.cs" />
-    <Compile Include="EventArgs\DeleteEventArg.cs" />
+    <Compile Include="EventArgs\ReceiveMessageEventArg.cs" />
     <Compile Include="IFactories\IFactory.cs" />
     <Compile Include="IGenerators\IGenerator.cs" />
+    <Compile Include="INetworkConnections\IBroadcastReceiver.cs" />
+    <Compile Include="INetworkConnections\IBroadcastSender.cs" />
     <Compile Include="INetworkConnections\IListener.cs" />
     <Compile Include="INetworkConnections\INetworkNotificator.cs" />
     <Compile Include="INetworkConnections\INetworkIO.cs" />
